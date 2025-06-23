@@ -148,6 +148,7 @@
 
                         </div>
                         
+                        @if (1 == 2)
                         <div class="row">
                             <div class="col-sm-4">
                                 <div class="card h-100">
@@ -279,7 +280,8 @@
                                 </div>
                             </div>
                         </div>
-
+                        @endif
+                        
                     </div>
                     
                     @include('layouts.partials.footer')

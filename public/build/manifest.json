@@ -291,15 +291,35 @@
     "file": "assets/wave-IhFJ-9db.png",
     "src": "resources/assets/img/wallets/wave.png"
   },
+  "resources/assets/vendor/fonts/boxicons/boxicons.eot": {
+    "file": "assets/boxicons-fqDhfsHa.eot",
+    "src": "resources/assets/vendor/fonts/boxicons/boxicons.eot"
+  },
+  "resources/assets/vendor/fonts/boxicons/boxicons.svg": {
+    "file": "assets/boxicons-e1o-z2FJ.svg",
+    "src": "resources/assets/vendor/fonts/boxicons/boxicons.svg"
+  },
+  "resources/assets/vendor/fonts/boxicons/boxicons.ttf": {
+    "file": "assets/boxicons-BBsJ98nm.ttf",
+    "src": "resources/assets/vendor/fonts/boxicons/boxicons.ttf"
+  },
+  "resources/assets/vendor/fonts/boxicons/boxicons.woff": {
+    "file": "assets/boxicons-kvn6whdv.woff",
+    "src": "resources/assets/vendor/fonts/boxicons/boxicons.woff"
+  },
+  "resources/assets/vendor/fonts/boxicons/boxicons.woff2": {
+    "file": "assets/boxicons-i616DiHt.woff2",
+    "src": "resources/assets/vendor/fonts/boxicons/boxicons.woff2"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-BAlzqv6C.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
   "resources/js/app.js": {
     "file": "assets/app-CTjcqScD.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true
-  },
-  "resources/sass/app.scss": {
-    "file": "assets/app-DZUsWXEA.css",
-    "src": "resources/sass/app.scss",
     "isEntry": true
   }
 }

@@ -4,7 +4,6 @@
   class="light-style layout-menu-fixed"
   dir="ltr"
   data-theme="theme-default"
-  data-assets-path="{{Vite::asset('resources/assets/')}}"
   data-template="vertical-menu-template-free"
 >
   <head>
@@ -41,7 +40,7 @@
     @yield('content')
     
     @yield('js')
-    
+
     @include('sweetalert::alert')
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
