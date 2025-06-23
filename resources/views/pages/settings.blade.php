@@ -239,8 +239,8 @@
                                                                         <div class="col-12 mb-sm-0 mb-2">
                                                                             <h6 class="mb-2">Portefeuile 1</h6>
                                                                             <input class="form-control"
-                                                                            {{ can_edit(auth()->user()->wallet_1) ? '' : 'disabled' }}
-                                                                            type="text" value="{{ auth()->user()->wallet_1 }}" name="wallet_1" placeholder="Entrer l'adresse du portefeuille">
+                                                                            {{ can_edit(auth()->user()->setting->wallet_1) ? '' : 'disabled' }}
+                                                                            type="text" value="{{ auth()->user()->setting->wallet_1 }}" name="wallet_1" placeholder="Entrer l'adresse du portefeuille">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -255,8 +255,8 @@
                                                                         <div class="col-12 mb-sm-0 mb-2">
                                                                             <h6 class="mb-2">Portefeuile 2</h6>
                                                                             <input class="form-control"
-                                                                            {{ can_edit(auth()->user()->wallet_2) ? '' : 'disabled' }}
-                                                                            type="text" value="{{ auth()->user()->wallet_2 }}" name="wallet_2" placeholder="Entrer l'adresse du portefeuille">
+                                                                            {{ can_edit(auth()->user()->setting->wallet_2) ? '' : 'disabled' }}
+                                                                            type="text" value="{{ auth()->user()->setting->wallet_2 }}" name="wallet_2" placeholder="Entrer l'adresse du portefeuille">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -271,8 +271,8 @@
                                                                         <div class="col-12 mb-sm-0 mb-2">
                                                                             <h6 class="mb-2">Portefeuile 3</h6>
                                                                             <input class="form-control"
-                                                                            {{ can_edit(auth()->user()->wallet_3) ? '' : 'disabled' }}
-                                                                            type="text" value="{{ auth()->user()->wallet_3 }}" name="wallet_3" placeholder="Entrer l'adresse du portefeuille">
+                                                                            {{ can_edit(auth()->user()->setting->wallet_3) ? '' : 'disabled' }}
+                                                                            type="text" value="{{ auth()->user()->setting->wallet_3 }}" name="wallet_3" placeholder="Entrer l'adresse du portefeuille">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -287,8 +287,8 @@
                                                                         <div class="col-12 mb-sm-0 mb-2">
                                                                             <h6 class="mb-2">Portefeuile 4</h6>
                                                                             <input class="form-control"
-                                                                            {{ can_edit(auth()->user()->wallet_4) ? '' : 'disabled' }}
-                                                                            type="text" value="{{ auth()->user()->wallet_4 }}" name="wallet_4" placeholder="Entrer l'adresse du portefeuille">
+                                                                            {{ can_edit(auth()->user()->setting->wallet_4) ? '' : 'disabled' }}
+                                                                            type="text" value="{{ auth()->user()->setting->wallet_4 }}" name="wallet_4" placeholder="Entrer l'adresse du portefeuille">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -303,8 +303,8 @@
                                                                         <div class="col-12 mb-sm-0 mb-2">
                                                                             <h6 class="mb-2">Usdt</h6>
                                                                             <input class="form-control" 
-                                                                            {{ can_edit(auth()->user()->wallet_usdt) ? '' : 'disabled' }}
-                                                                            type="text" value="{{ auth()->user()->wallet_usdt }}" name="wallet_usdt" placeholder="Entrer l'adresse du portefeuille">
+                                                                            {{ can_edit(auth()->user()->setting->wallet_usdt) ? '' : 'disabled' }}
+                                                                            type="text" value="{{ auth()->user()->setting->wallet_usdt }}" name="wallet_usdt" placeholder="Entrer l'adresse du portefeuille">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -381,6 +381,19 @@
                                                                         <div class="col-3 text-end">
                                                                             <div class="form-check form-switch">
                                                                                 <input class="form-check-input float-end" name="enable_profile_edit" type="checkbox" @if (\App\Utils\Utils::appSettings()->enable_profile_edit) checked="" @endif role="switch" />
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="d-flex mb-3">
+                                                                    <div class="flex-grow-1 row">
+                                                                        <div class="col-9 mb-sm-0 mb-2">
+                                                                            <h6 class="mb-0"><i class="tf-icons bx bx-lock"></i> Authentification via Google</h6>
+                                                                            <small class="text-muted">Autoriser cette fonctionalité</small>
+                                                                        </div>
+                                                                        <div class="col-3 text-end">
+                                                                            <div class="form-check form-switch">
+                                                                                <input class="form-check-input float-end" name="enable_google_auth" type="checkbox" @if (\App\Utils\Utils::appSettings()->enable_google_auth) checked="" @endif role="switch" />
                                                                             </div>
                                                                         </div>
                                                                     </div>

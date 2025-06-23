@@ -99,6 +99,17 @@ class Reward extends Model
         } 
         return false;
     }
+    
+    /**
+     * Checks if reward is approuved for bonus withdraw
+     *
+     * @return boolean
+     */
+    public function isApprouvedForBonus ()
+    {
+        return $this->source == "bonus" && count($this->royalties) > 0 && $this->is_royalties_withdraw_enabled && !is_null($this->royalties_withdraw_enabled_at);
+    }
+
     /**
      * Check if reward if initiale or created by an admin
      *
@@ -107,7 +118,7 @@ class Reward extends Model
     public function isInitiale ()
     {
         if (is_null($this->don_id)) {
-            return true;
+            return $this->source == "don";
         } else {
             if (!is_null($this->user) && !is_null($this->don)) {
                 if ($this->don->user_id != $this->user->id) {

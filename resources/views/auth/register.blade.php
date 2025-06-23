@@ -174,6 +174,15 @@
                     </div>
                 </div>
                 <button class="btn btn-primary d-grid w-100">S'inscrire</button>
+                
+                @if (\App\Utils\Utils::appSettings()->enable_google_auth)
+                <div class="mb-3 mt-3">
+                    <a href="{{ route('google.redirect') }}" class="btn btn-outline-primary d-grid w-100" type="submit">
+                        <i class="tf-icons bx bx-google"></i> Continuer avec Google
+                    </a>
+                </div>
+                @endif
+
               </form>
 
               <p class="text-center">

@@ -24,6 +24,11 @@ class HomeController extends Controller
      */
     public function index()
     {
+        # Checking user setting
+        if (is_null(auth()->user()->setting)) {
+            # Init setting
+            $user->InitSetting();
+        }
         return view('pages.account.dashboard');
     }
 }

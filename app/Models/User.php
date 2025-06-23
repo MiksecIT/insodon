@@ -42,6 +42,33 @@ class User extends Authenticatable
     ];
 
     /**
+     * Init setting
+     *
+     * @return void
+     */
+    public function initSetting ()
+    {
+        if (is_null($this->setting)) {
+            return Setting::create([
+                "reference" => \App\Utils\Utils::generateReference(Setting::all(), \App\Utils\Utils::fakeToken(20), 1),
+                "user_id" => $this->id,
+                "created_at" => now(),
+                "updated_at" => now(),
+            ]);
+        }
+    }
+
+    /**
+     * Related setting
+     *
+     * @return void
+     */
+    public function setting ()
+    {
+        return $this->hasOne(Setting::class, "user_id");
+    }
+
+    /**
      * Related roles
      */
     public function role()
@@ -55,6 +82,15 @@ class User extends Authenticatable
     public function message ()
     {
         return $this->hasOne(Message::class, "from");
+    }
+    /**
+     * Undocumented function
+     *
+     * @return boolean
+     */
+    public function isBlocked () 
+    {
+        return $this->is_blocked && !is_null($this->blocked_at);
     }
     /**
      * Check if user
@@ -267,6 +303,24 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has gained royalties
+     *
+     * @param Royalty $royalty
+     * @return boolean
+     */
+    public function hasGainedRoyalty (Royalty $royalty)
+    {
+        if(count($this->gainedRoyalties)) {
+            foreach ($this->gainedRoyalties as $r) {
+                if ($r->target == $this->id) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    /**
      * Completed royalties
      *
      * @return void
@@ -361,7 +415,7 @@ class User extends Authenticatable
         $amount = 0;
         if (count($this->gainedRoyalties) > 0) {
             foreach ($this->gainedRoyalties as $r) {
-                if ($r->isClaimed() == false && $r->isReceived() == false) {
+                if ($r->isClaimed() == false && $r->isReceived() == false && $r->value > 0 && !is_null($r->value)) {
                     $amount += $r->value;
                     array_push($array, $r);
                 }

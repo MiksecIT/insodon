@@ -1,3 +1,10 @@
+                                                            
+                                                            @php
+                                                                if (is_null($user->setting)) {
+                                                                    $user->initSetting();
+                                                                }
+                                                            @endphp
+                                                            
                                                             <div class="alert alert-secondary">
                                                                 
                                                                 @if(\App\Utils\Utils::appSettings()->enable_wallet_1)
@@ -9,9 +16,9 @@
                                                                         <div class="col-12 mb-sm-0 mb-2">
                                                                             <h6 class="mb-2">Portefeuile 1</h6>
                                                                             <p>
-                                                                                @if (!is_null($user->wallet_1))
+                                                                                @if (!is_null($user->setting->wallet_1))
                                                                                 <strong class="text-primary">
-                                                                                    {{{ $user->wallet_1 }}}
+                                                                                    {{ $user->setting->wallet_1 }}
                                                                                 </strong>
                                                                                 @else
                                                                                 Pas renseigné
@@ -31,9 +38,9 @@
                                                                         <div class="col-12 mb-sm-0 mb-2">
                                                                             <h6 class="mb-2">Portefeuile 2</h6>
                                                                             <p>
-                                                                                @if (!is_null($user->wallet_2))
+                                                                                @if (!is_null($user->setting->wallet_2))
                                                                                 <strong class="text-primary">
-                                                                                    {{{ $user->wallet_2 }}}
+                                                                                    {{{ $user->setting->wallet_2 }}}
                                                                                 </strong>
                                                                                 @else
                                                                                 Pas renseigné
@@ -52,9 +59,9 @@
                                                                     <div class="flex-grow-1 row">
                                                                         <div class="col-12 mb-sm-0 mb-2">
                                                                             <h6 class="mb-2">Portefeuile 3</h6>
-                                                                            @if (!is_null($user->wallet_3))
+                                                                            @if (!is_null($user->setting->wallet_3))
                                                                             <strong class="text-primary">
-                                                                                {{{ $user->wallet_3 }}}
+                                                                                {{{ $user->setting->wallet_3 }}}
                                                                             </strong>
                                                                             @else
                                                                             Pas renseigné
@@ -72,9 +79,9 @@
                                                                     <div class="flex-grow-1 row">
                                                                         <div class="col-12 mb-sm-0 mb-2">
                                                                             <h6 class="mb-2">Portefeuile 4</h6>
-                                                                            @if (!is_null($user->wallet_4))
+                                                                            @if (!is_null($user->setting->wallet_4))
                                                                             <strong class="text-primary">
-                                                                                {{{ $user->wallet_4 }}}
+                                                                                {{{ $user->setting->wallet_4 }}}
                                                                             </strong>
                                                                             @else
                                                                             Pas renseigné
@@ -93,9 +100,9 @@
                                                                     <div class="flex-grow-1 row">
                                                                         <div class="col-12 mb-sm-0 mb-2">
                                                                             <h6 class="mb-2">Usdt</h6>
-                                                                            @if (!is_null($user->wallet_usdt))
+                                                                            @if (!is_null($user->setting->wallet_usdt))
                                                                             <strong class="text-primary">
-                                                                                {{{ $user->wallet_usdt }}}
+                                                                                {{{ $user->setting->wallet_usdt }}}
                                                                             </strong>
                                                                             @else
                                                                             Pas renseigné

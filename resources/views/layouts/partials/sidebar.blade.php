@@ -112,6 +112,7 @@
                 </div>
               </a>
             </li>
+
             <li class="menu-item {{ Route::is('rewards*') ? 'active' : ''}} ">
               <a href="{{ route('rewards.index') }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-box"></i>
@@ -126,6 +127,25 @@
                 </div>
               </a>
             </li>
+
+            @if (\App\Utils\Utils::appSettings()->enable_royalties)
+              @if (auth()->user()->isPartOfAdmin() || count(auth()->user()->affiliates) > 0)
+            <li class="menu-item {{ Route::is('bonus*') ? 'active' : ''}} ">
+              <a href="{{ route('bonus.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-rocket"></i>
+                <div data-i18n="Bonus">Bonus 
+                  <span style="margin-left:4px;" class="text-muted">
+                    @if (auth()->user()->isPartOfAdmin())
+                    {{ \App\Models\Royalty::count() }}
+                    @else
+                    {{ count(auth()->user()->gainedRoyalties) }}
+                    @endif
+                  </span>
+                </div>
+              </a>
+            </li>
+              @endif
+            @endif
 
             @if (\App\Utils\Utils::appSettings()->enable_notifications)
             <li class="menu-item {{ Route::is('notifications*') ? 'active' : ''}}">
@@ -164,7 +184,7 @@
             @if (\App\Utils\Utils::appSettings()->enable_faq || \App\Utils\Utils::appSettings()->enable_support)
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Assistance</span></li>
             @endif
-            
+
             @if (\App\Utils\Utils::appSettings()->enable_support)
             <li class="menu-item {{ Route::is('app.support*') ? 'active' : '' }}">
               <a

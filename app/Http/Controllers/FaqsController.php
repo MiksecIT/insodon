@@ -14,6 +14,8 @@ class FaqsController extends Controller
      */
     public function index()
     {
+        abort_unless(\App\Utils\Utils::appSettings()->enable_faq, 404);
+
         $faqs = [];
         if (auth()->user()->isPartOfAdmin()) {
             if (auth()->user()->isRoot()) {
@@ -36,6 +38,12 @@ class FaqsController extends Controller
      */
     public function create()
     {
+        abort_unless(\App\Utils\Utils::appSettings()->enable_faq, 404);
+        if (is_null(auth()->user()->isBlocked())) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (auth()->user()->isPartOfAdmin()) {
             $faqs = Faq::where('is_available', 1)->where('faq_id', null)->get();
             return view('pages.faqs.create', compact('faqs'));
@@ -48,6 +56,12 @@ class FaqsController extends Controller
      */
     public function store(Request $request)
     {
+        abort_unless(\App\Utils\Utils::appSettings()->enable_faq, 404);
+        if (is_null(auth()->user()->isBlocked())) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+        
         if (auth()->user()->isPartOfAdmin()) {
             
             if ($request->has('title') && $request->has('content')) {

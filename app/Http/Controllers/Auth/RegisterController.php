@@ -68,8 +68,11 @@ class RegisterController extends Controller
         if (array_key_exists("referal", $data)) {
             $referal = User::where("reference", $data["referal"])->first();
         }
+
+        # Getting user role
         $role = \App\Models\Role::where('reference', 'user')->first();
-        return User::create([
+
+        $user = User::create([
             'reference' => \App\Utils\Utils::generateReference(User::all(), \App\Utils\Utils::fakeToken(20), 1),
             'role_id' => !is_null($role) ? $role->id : null,
             'name' => $data['name'],
@@ -77,5 +80,10 @@ class RegisterController extends Controller
             'password' => Hash::make($data['password']),
             'user_id' => !is_null($referal) ? $referal->id : null,
         ]);
+
+        # Init setting
+        $user->InitSetting();
+
+        return $user;
     }
 }

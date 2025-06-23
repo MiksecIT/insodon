@@ -18,6 +18,11 @@ class DonsController extends Controller
      */
     public function index()
     {
+        if (is_null(auth()->user()->isBlocked())) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         $dons = [];
         if (auth()->user()->isPartOfAdmin()) {
             $dons = Don::all();
@@ -50,6 +55,11 @@ class DonsController extends Controller
      */
     public function createReward (Request $request)
     {
+        if (is_null(auth()->user()->isBlocked())) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort_unless(auth()->user()->isTopManager(), 403);
 
         if ($request->has('ack') && $request->has('rec')) {
@@ -101,6 +111,11 @@ class DonsController extends Controller
      */
     public function store(Request $request)
     {
+        if (is_null(auth()->user()->isBlocked())) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if ($request->has("u__d")) {
             $pack = Pack::where("reference", $request->u__d)->first();
             if (is_null($pack)) {
@@ -246,6 +261,11 @@ class DonsController extends Controller
      */
     public function destroy(string $id)
     {
+        if (is_null(auth()->user()->isBlocked())) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+        
         $don = Don::find($id);
         abort_unless(!is_null($don), 404);
         if (auth()->user()->hasDon($don) || auth()->user()->isTopManager()) {

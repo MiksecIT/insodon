@@ -118,6 +118,48 @@ class UsersController extends Controller
     }
 
     /**
+     * Block/Unblock given user
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function toggleBlock (Request $request)
+    {
+        abort_unless(\App\Utils\Utils::appSettings()->enable_suspension, 404);
+        abort_unless(auth()->user()->isTopManager(), 403);
+
+        if ($request->has("ack")) {
+            $user = User::where("reference", $request->ack)->first();
+            if (is_null($user)) {
+                alert()->error("Introuvable", "Utilisateur introuvable")->persistent();
+                return redirect()->back();
+            }
+
+            if ($user->isBlocked() == false) {
+                $user->is_blocked = 1;
+                $user->blocked_at = now();
+                $user->blocked_until = \Carbon\Carbon::parse(now())->addDays(\App\Utils\Utils::appSettings()->suspension_delay);
+                $user->save();
+
+                alert()->success("Terminé", "Utilisateur suspendu jusqu'au ".$user->blocked_until)->persistent();
+                return redirect()->back();
+            } else {
+                $user->is_blocked = 0;
+                $user->blocked_at = null;
+                $user->blocked_until = null;
+                $user->save();
+
+                alert()->success("Terminé", "Utilisateur admis avec succès")->persistent();
+                return redirect()->back();
+            }
+
+        } else {
+            alert()->error("Erreur", "Un ou plusieurs champs manquants")->persistent();
+            return redirect()->back();
+        }
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(string $reference)

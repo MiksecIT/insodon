@@ -18,13 +18,18 @@ use Illuminate\Support\Facades\Route;
  */
 // Auth::routes(['verify' => true]);
 
+Route::get('/', function(){
+    return redirect()->route('home');
+});
+
 Route::group(['namespace' => 'App\\Http\\Controllers'], function(){
+
+    Route::get('/google/redirect', [App\Http\Controllers\GoogleLoginController::class, 'redirectToGoogle'])->name('google.redirect');
+    Route::get('/google/callback', [App\Http\Controllers\GoogleLoginController::class, 'handleGoogleCallback'])->name('google.callback');
 
     Auth::routes();
 
     Route::get('maintenance', 'App\\Http\\Controllers\\PageController@maintenance')->name('app.maintenance');
-
-    Route::get('/', 'HomeController@index')->name('intro');
 
     Route::get('/home', 'HomeController@index')->name('home');
 
@@ -61,7 +66,8 @@ Route::group(['namespace' => 'App\\Http\\Controllers'], function(){
     // Route::resource('messages', 'MessagesController')->middleware('auth');
     Route::resource('rewards', 'RewardsController')->middleware('auth');
     Route::resource('bonus', 'RoyaltiesController')->middleware('auth');
-    Route::get('bonus/claim', 'RoyaltiesController@claim')->name('bonus.claim')->middleware('auth');
+    Route::post('bonus/claim', 'RoyaltiesController@claim')->name('bonus.claim')->middleware('auth');
+    Route::post('bonus/approuve', 'RoyaltiesController@approuve')->name('bonus.approuve')->middleware('auth');
 
 
     Route::get('affiliates', 'AccountController@affiliates')->name('account.affiliates')->middleware('auth');
@@ -69,6 +75,8 @@ Route::group(['namespace' => 'App\\Http\\Controllers'], function(){
     Route::get('messages', 'AccountController@messages')->name('account.messages')->middleware('auth');
 
     Route::resource('users', 'UsersController')->middleware('auth');
+    Route::post('users/toggle/block', 'UsersController@toggleBlock')->name('users.block.toggle')->middleware('auth');
+    
     Route::resource('roles', 'RolesController')->middleware('auth');
 
 });

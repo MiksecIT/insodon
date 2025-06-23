@@ -13,6 +13,23 @@
         </thead>
         <tbody class="table-border-bottom-0">
             @foreach ($fusions as $fusion)
+
+            @php
+                # Checking user setting
+                if (!is_null($fusion->sender())) {
+                    if (is_null($fusion->sender()->setting)) {
+                        # Init setting
+                        $fusion->sender()->InitSetting();
+                    }
+                }
+                if (!is_null($fusion->receiver())) {
+                    if (is_null($fusion->receiver()->setting)) {
+                        # Init setting
+                        $fusion->receiver()->InitSetting();
+                    }
+                }
+            @endphp
+
             <tr>
                 <td>{{ $fusion->reference }}</td>
                 <td>

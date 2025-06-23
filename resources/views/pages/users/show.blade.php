@@ -32,19 +32,77 @@
                                     </span>
                                 </p>
                             </div>
-                            @if (auth()->user()->isTopManager())
-                            <div class="col-md-4" style="text-align: right !important;">
+                            @if (auth()->user()->isPartOfAdmin())
+                            <div class="col-md-4">
                                 <a href="{{ route('users.edit', $user->reference) }}" type="button" class="btn btn-outline-secondary">
                                     <span class="tf-icons bx bx-edit"></span>&nbsp; Modifier
                                 </a>
+                                @if (auth()->user()->isTopManager())
+                                <a href="#!" type="button" class="btn btn-outline-{{ $user->isBlocked() ? 'primary' : 'danger' }}"
+                                    title="Suspendre {{ $user->name }}"
+                                    type="button" 
+                                    class="btn rounded-pill btn-icon btn-primary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#suspensionModal"
+                                    >
+                                    <span class="tf-icons bx bx-{{ $user->isBlocked() ? 'check' : 'block' }}"></span>&nbsp; {{ $user->isBlocked() ? 'Admettre' : 'Suspendre' }}
+                                </a>
+                                <div class="modal fade" id="suspensionModal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-scrollable" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="modalCenterTitle">{{ $user->isBlocked() ? 'Admission' : 'Suspension' }}</h5>
+                                                <button
+                                                    type="button"
+                                                    class="btn-close"
+                                                    data-bs-dismiss="modal"
+                                                    aria-label="Close"
+                                                ></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col">
+                                                        @if ($user->isBlocked() == false)
+                                                        Voulez-vous vraiment suspendre {{ $user->name }} ? <br> <br>
+                                                        Durée de la suspension: 
+                                                        @if(!is_null(\App\Utils\Utils::appSettings()->suspension_delay) && \App\Utils\Utils::appSettings()->suspension_delay > 0) 
+                                                        {{ \App\Utils\Utils::appSettings()->suspension_delay }} jour(s).
+                                                        @else 
+                                                        <span class="badge bg-label-secondary">pas renseigné</span> 
+                                                        @endif
+                                                        <br>
+                                                        Estimation du retour: 
+                                                        @if(!is_null(\App\Utils\Utils::appSettings()->suspension_delay) && \App\Utils\Utils::appSettings()->suspension_delay > 0)
+                                                        {{ \Carbon\Carbon::parse(now())->addDays(\App\Utils\Utils::appSettings()->suspension_delay) }}
+                                                        @else 
+                                                        <span class="badge bg-label-secondary">Estimation impossible</span> 
+                                                        @endif
+                                                        @else
+                                                        Voulez-vous vraiment admettre {{ $user->name }} ? <br> <br>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                                    Non
+                                                </button>
+                                                <button onclick="$('#form-suspend{{ $user->reference }}').submit();" type="button" class="btn btn-primary">Oui, je confirme</button>
+                                                <form id="form-suspend{{ $user->reference }}" action="{{ route('users.block.toggle') }}" method="POST">
+                                                    @csrf
+                                                    <input type="text" name="ack" value="{{ $user->reference }}" hidden>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <a href="{{ route('users.create') }}" type="button" class="btn btn-outline-primary">
                                     <span class="tf-icons bx bx-user-plus"></span>&nbsp; Ajouter
                                 </a>
+                                @endif
                             </div>
                             @endif
-                        </div>                        
-
-                        
+                        </div>  
 
                         <div class="row">
                             <div class="col">

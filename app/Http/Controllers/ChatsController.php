@@ -33,6 +33,12 @@ class ChatsController extends Controller
      */
     public function store(Request $request)
     {
+        abort_unless(\App\Utils\Utils::appSettings()->enable_support, 404);
+        if (is_null(auth()->user()->isBlocked())) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if ($request->has("message") && $request->has("content")) {
             $message = Message::where('reference', $request->message)->first();
             if (is_null($message)) {
@@ -46,6 +52,11 @@ class ChatsController extends Controller
 
             if (is_null($message->user)) {
                 alert()->error("Introuvable", "Initiateur introuvable")->persistent();
+                return redirect()->back();
+            }
+
+            if (is_null($message->user->isBlocked())) {
+                alert()->error("Compte suspendu", "Le compte de ".$message->user->name." a été suspendu")->persistent();
                 return redirect()->back();
             }
 

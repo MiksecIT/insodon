@@ -12,7 +12,21 @@
               
               <div class="navbar-nav align-items-center">
                 <div class="nav-item">
-                  Hello {{ auth()->user()->name }}, @if(!is_null(\App\Utils\Utils::appSettings()->welcome)) {{ \App\Utils\Utils::appSettings()->welcome }} @else Bienvenue sur <a href="{{ url('/') }}"><strong>{{ config('app.name') }}</strong></a>@endif                  
+                  Hello {{ auth()->user()->name }}, 
+                  @if (\App\Utils\Utils::appSettings()->enable_suspension)
+                    @if (auth()->user()->isBlocked())
+                      @if (!is_null(\App\Utils\Utils::appSettings()->suspension_message))
+                      {{ \App\Utils\Utils::appSettings()->suspension_message }}
+                      @else
+                      votre compte a été <strong class="text-danger">SUSPENDU</strong>
+                      @endif
+                    @else
+                      @if(!is_null(\App\Utils\Utils::appSettings()->welcome)) {{ \App\Utils\Utils::appSettings()->welcome }} @else Bienvenue sur <a href="{{ url('/') }}"><strong>{{ config('app.name') }}</strong></a>@endif
+                    @endif
+                  @else
+                    @if(!is_null(\App\Utils\Utils::appSettings()->welcome)) {{ \App\Utils\Utils::appSettings()->welcome }} @else Bienvenue sur <a href="{{ url('/') }}"><strong>{{ config('app.name') }}</strong></a>@endif                  
+                  @endif
+                  
                 </div>
               </div>
 

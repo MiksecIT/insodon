@@ -22,6 +22,12 @@ class PageController extends Controller
     {        
         $edited = 0;
 
+        $setting = Setting::where("user_id", auth()->user()->id)->first();
+        
+        if (is_null($setting)) {
+            $setting = auth()->user()->initSetting();
+        }
+
         # Lastname && Firstname
         if ($request->has("firstname") && $request->has("lastname")) {
             if (can_edit(auth()->user()->firstname) && can_edit(auth()->user()->lastname)) {
@@ -90,16 +96,16 @@ class PageController extends Controller
         if ($request->has("wallet_1")) {
             if (can_edit(auth()->user()->wallet_1)) {
                 if (!is_null($request->wallet_1)) {
-                    $existingW1 = User::where('wallet_1', $request->wallet_1)->first();
+                    $existingW1 = Setting::where('user_id', auth()->user()->id)->where('wallet_1', $request->wallet_1)->first();
                     if (!is_null($existingW1)) {
-                        if ($existingW1->id != auth()->user()->id) {
+                        if ($existingW1->user_id != auth()->user()->id) {
                             alert()->error("Erreur", "Le portefeuille no.1 est déjà utilisé")->persistent();
                             return redirect()->back();
                         }
                     } else {
-                        if (auth()->user()->wallet_1 != $request->wallet_1) {
-                            auth()->user()->wallet_1 = $request->wallet_1;
-                            auth()->user()->save();
+                        if ($setting->wallet_1 != $request->wallet_1) {
+                            $setting->wallet_1 = $request->wallet_1;
+                            $setting->save();
 
                             $edited +=1;
                         }
@@ -112,16 +118,16 @@ class PageController extends Controller
         if ($request->has("wallet_2")) {
             if (can_edit(auth()->user()->wallet_2)) {
                 if (!is_null($request->wallet_2)) {
-                    $existingW2 = User::where('wallet_2', $request->wallet_2)->first();
+                    $existingW2 = Setting::where('user_id', auth()->user()->id)->where('wallet_2', $request->wallet_2)->first();
                     if (!is_null($existingW2)) {
-                        if ($existingW2->id != auth()->user()->id) {
+                        if ($existingW2->user_id != auth()->user()->id) {
                             alert()->error("Erreur", "Le portefeuille no.2 est déjà utilisé")->persistent();
                             return redirect()->back();
                         }
                     } else {
-                        if (auth()->user()->wallet_2 != $request->wallet_2) {
-                            auth()->user()->wallet_2 = $request->wallet_2;
-                            auth()->user()->save();
+                        if ($setting->wallet_2 != $request->wallet_2) {
+                            $setting->wallet_2 = $request->wallet_2;
+                            $setting->save();
 
                             $edited +=1;
                         }
@@ -134,16 +140,16 @@ class PageController extends Controller
         if ($request->has("wallet_3")) {
             if (can_edit(auth()->user()->wallet_3)) {
                 if (!is_null($request->wallet_3)) {
-                    $existingW3 = User::where('wallet_3', $request->wallet_3)->first();
+                    $existingW3 = Setting::where('user_id', auth()->user()->id)->where('wallet_3', $request->wallet_3)->first();
                     if (!is_null($existingW3)) {
-                        if ($existingW3->id != auth()->user()->id) {
+                        if ($existingW3->user_id != auth()->user()->id) {
                             alert()->error("Erreur", "Le portefeuille no.3 est déjà utilisé")->persistent();
                             return redirect()->back();
                         }
                     } else {
-                        if (auth()->user()->wallet_3 != $request->wallet_3) {
-                            auth()->user()->wallet_3 = $request->wallet_3;
-                            auth()->user()->save();
+                        if ($setting->wallet_3 != $request->wallet_3) {
+                            $setting->wallet_3 = $request->wallet_3;
+                            $setting->save();
 
                             $edited +=1;
                         }
@@ -156,16 +162,16 @@ class PageController extends Controller
         if ($request->has("wallet_4")) {
             if (can_edit(auth()->user()->wallet_4)) {
                 if (!is_null($request->wallet_4)) {
-                    $existingW4 = User::where('wallet_4', $request->wallet_4)->first();
+                    $existingW4 = Setting::where('user_id', auth()->user()->id)->where('wallet_4', $request->wallet_4)->first();
                     if (!is_null($existingW4)) {
-                        if ($existingW4->id != auth()->user()->id) {
+                        if ($existingW4->user_id != auth()->user()->id) {
                             alert()->error("Erreur", "Le portefeuille no.4 est déjà utilisé")->persistent();
                             return redirect()->back();
                         }
                     } else {
-                        if (auth()->user()->wallet_4 != $request->wallet_4) {
-                            auth()->user()->wallet_4 = $request->wallet_4;
-                            auth()->user()->save();
+                        if ($setting->wallet_4 != $request->wallet_4) {
+                            $setting->wallet_4 = $request->wallet_4;
+                            $setting->save();
 
                             $edited +=1;
                         }
@@ -178,16 +184,16 @@ class PageController extends Controller
         if ($request->has("wallet_usdt")) {
             if (can_edit(auth()->user()->wallet_usdt)) {
                 if (!is_null($request->wallet_usdt)) {
-                    $existingWU = User::where('wallet_usdt', $request->wallet_usdt)->first();
+                    $existingWU = Setting::where('user_id', auth()->user()->id)->where('wallet_usdt', $request->wallet_usdt)->first();
                     if (!is_null($existingWU)) {
-                        if ($existingWU->id != auth()->user()->id) {
+                        if ($existingWU->user_id != auth()->user()->id) {
                             alert()->error("Erreur", "Le portefeuille usdt est déjà utilisé")->persistent();
                             return redirect()->back();
                         }
                     } else {
-                        if (auth()->user()->wallet_usdt != $request->wallet_usdt) {
-                            auth()->user()->wallet_usdt = $request->wallet_usdt;
-                            auth()->user()->save();
+                        if ($setting->wallet_usdt != $request->wallet_usdt) {
+                            $setting->wallet_usdt = $request->wallet_usdt;
+                            $setting->save();
 
                             $edited +=1;
                         }
@@ -223,6 +229,14 @@ class PageController extends Controller
                 "created_at" => now(),
                 "updated_at" => now(),
             ]);
+        }
+        # Google authentification
+        if ($request->has('enable_google_auth')) {
+            $appSetting->enable_google_auth = 1;
+            $appSetting->save();
+        } else {
+            $appSetting->enable_google_auth = 0;
+            $appSetting->save();
         }
         # Notifications
         if ($request->has('enable_notifications')) {
@@ -462,6 +476,12 @@ class PageController extends Controller
      */
     public function support ()
     {
+        abort_unless(\App\Utils\Utils::appSettings()->enable_support, 404);
+        if (is_null(auth()->user()->isBlocked())) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         $messages = Message::where("to", null)->get();
         $message = Message::where('from', auth()->user()->id)->first();
         if (is_null($message)) {
@@ -484,6 +504,12 @@ class PageController extends Controller
      */
     public function supportDetails ($reference)
     {
+        abort_unless(\App\Utils\Utils::appSettings()->enable_support, 404);
+        if (is_null(auth()->user()->isBlocked())) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         $message = Message::where("reference", $reference)->first();
         abort_unless(!is_null($message), 404);   
         abort_unless($message->user->id == auth()->user()->id || auth()->user()->isPartOfAdmin(), 403);     
@@ -498,6 +524,13 @@ class PageController extends Controller
      */
     public function settings ()
     {
+        if (is_null(auth()->user()->isBlocked())) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+        if (is_null(auth()->user()->setting)) {
+            $setting = auth()->user()->initSetting();
+        }
         $countries = \App\Models\Country::all();
         return view('pages.settings', compact('countries'));
     }
