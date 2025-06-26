@@ -76,6 +76,21 @@ class ChatsController extends Controller
                 'updated_at' => now(),
             ]);
 
+            # Storing image
+            # Checking if image has been uploaded
+            if ($request->hasFile('image')) {
+                # Checking image mime type
+                if (in_array($request->file('image')->getMimeType(), Utils::getAllowedImagesMimeTypes())) {
+                    # Generating filename for image
+                    $tempFilename = 'IMG-'.$chat->reference.'.'.$request->file('image')->getClientOriginalExtension();                        
+                    # Moving uploaded image to local storage
+                    $request->file('image')->move(public_path('uploads/'), $tempFilename);
+                    # Binding uploaded image with db record
+                    $chat->image_url = 'uploads/'.$tempFilename;
+                    $chat->save();           
+                }
+            }
+
             toast("Message envoyé avec succès", "success");
             return redirect()->route("app.support.details", $message->reference);
 

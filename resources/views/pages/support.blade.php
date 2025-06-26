@@ -76,12 +76,55 @@
                                                         <div class="card-body">
                                                             <div class="support-container" style="height: 300px !important; overflow: auto; padding: 0 15px;">
                                                                 @forelse ($message->chats as $chat)
-                                                                <div style="text-align: @if($chat->user_id == auth()->user()->id) right @else left @endif;">
-                                                                    <img src="{{Vite::asset('resources/assets/img/avatars/default.png')}}" alt class="w-px-40 h-auto rounded-circle" />
-                                                                    <span style="display:inline-block;" class="alert alert-{{ $chat->user_id == auth()->user()->id ? 'primary' : 'dark'}}" role="alert">
-                                                                        {{ $chat->content }}
-                                                                    </span>
-                                                                    <p style="font-size:12px;" class="text-muted">
+                                                                <div style="text-align: @if($chat->user_id == auth()->user()->id) right @else left @endif; margin-bottom: 50px;">
+                                                                                                                                      
+                                                                    <div style="margin-top:5px;">
+                                                                        @if ($chat->user_id != auth()->user()->id)
+                                                                        <img src="{{Vite::asset('resources/assets/img/avatars/default.png')}}" alt class="w-px-40 h-auto rounded-circle" />
+                                                                        @endif                                                                        
+                                                                        
+                                                                        <span style="display:inline-block;" class="alert alert-{{ $chat->user_id == auth()->user()->id ? 'primary' : 'dark'}}" role="alert">
+                                                                            
+                                                                            @if (!is_null($chat->image_url))
+                                                                            <img src="{{ load_asset_url($chat->image_url) }}" data-bs-toggle="modal" data-bs-target="#chatModal{{ $chat->reference }}" title="Cliquer pour voir l'image" 
+                                                                                style="height: 150px; width:300px; object-fit:cover; border-radius:10px; border: 1px solid #ddd; cursor: pointer; margin-bottom: 10px;" alt="">
+                                                                            <br>
+                                                                            <div class="modal fade" id="chatModal{{ $chat->reference }}" tabindex="-1" aria-hidden="true">
+                                                                                <div class="modal-dialog modal-dialog-scrollable" role="document">
+                                                                                    <div class="modal-content">
+                                                                                    <div class="modal-header">
+                                                                                        <h5 class="modal-title" id="modalFullTitle">Détails de l'image</h5>
+                                                                                        <button
+                                                                                        type="button"
+                                                                                        class="btn-close"
+                                                                                        data-bs-dismiss="modal"
+                                                                                        aria-label="Close"
+                                                                                        ></button>
+                                                                                    </div>
+                                                                                    <div class="modal-body">
+                                                                                        <div>
+                                                                                            <img src="{{ load_asset_url($chat->image_url) }}" 
+                                                                                style="height: 300px; width:100%; object-fit:cover; border-radius: 10px;" alt="">
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div class="modal-footer">
+                                                                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                                                                        Fermer
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            @endif
+                                                                            
+                                                                            {{ $chat->content }}
+                                                                        </span>
+
+                                                                        @if ($chat->user_id == auth()->user()->id)
+                                                                        <img src="{{Vite::asset('resources/assets/img/avatars/default.png')}}" alt class="w-px-40 h-auto rounded-circle" />
+                                                                        @endif
+                                                                    </div>
+                                                                    <div style="font-size:12px;" class="text-muted">
                                                                         {{ $chat->created_at }} 
                                                                         @if (!is_null($chat->user))
                                                                         &bullet; 
@@ -95,17 +138,18 @@
                                                                             </strong>
                                                                         </a>
                                                                         @endif
-                                                                    </p>
+                                                                    </div>
                                                                 </div>
                                                                 @empty
                                                                     <span style="display:block;" class="alert alert-secondary text-center" role="alert">Aucun message envoyé pour le moment — N'hésitez pas !</span>
                                                                 @endforelse
                                                             </div>
-                                                            <form action="{{ route('chats.store') }}" method="POST">
+                                                            <hr>
+                                                            <form action="{{ route('chats.store') }}" method="POST" enctype="multipart/form-data">
                                                                 @csrf
                                                                 <input type="text" name="message" id="message" value="{{ $message->reference }}" hidden>
                                                                 <div class="row">
-                                                                    <div class="mb-3 col-md-12">
+                                                                    <div class="mb-3 col-md-9">
                                                                         <label for="chat" class="form-label">Message</label>
                                                                         <textarea
                                                                             class="form-control"
@@ -116,6 +160,10 @@
                                                                             required
                                                                             rows="1" cols="1"
                                                                         > </textarea>
+                                                                    </div>
+                                                                    <div class="mb-3 col-md-3">
+                                                                        <label for="image" class="form-label">Ajouter une image <span class="text-muted">(*jpeg, *jpg, *png)</span></label>
+                                                                        <input class="form-control" type="file" name="image" id="image" accept="image/png, image/jpg, image/jpeg">
                                                                     </div>
                                                                 </div>
                                                                 <div class="row">

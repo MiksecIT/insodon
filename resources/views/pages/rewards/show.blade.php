@@ -233,7 +233,7 @@
                                                                         <a href="{{ route('gifts.show', $reward->don->reference) }}" style="display: block; width:100%; margin-top:5px;" type="button" class="btn btn-outline-primary">
                                                                             Détails du don &rarr;
                                                                         </a>
-                                                                        @if ($reward->don->isFusioned() == false)
+                                                                        @if ($reward->don->isFusioned() == false && auth()->user()->isPartOfAdmin())
                                                                             <a href="{{ route('associations.createFromDon', $reward->don->reference) }}" style="display: block; width:100%; margin-top:20px;" type="button" class="btn btn-primary">
                                                                                 <span class="tf-icons bx bx-link"></span> Associer @convert($reward->don->remaining_amount) <span class="text-muted">FCFA</span>
                                                                             </a>
@@ -257,7 +257,7 @@
                                                 <div class="col-sm-12">
                                                     <p>
                                                         Toutes les associations
-                                                        {{ count($reward->fusions) }} au total &bullet; 
+                                                        {{ count($reward->fusions) }} au total <br>
                                                         {{ count($reward->fusionsCompleted())."/".count($reward->fusions) }} <span class="text-muted">terminée(s)</span> &bullet;
                                                         {{ count($reward->fusionsReceived())."/".count($reward->fusions) }} <span class="text-muted">reçu(s)</span> &bullet;
                                                         {{ count($reward->fusionsSent())."/".count($reward->fusions) }} <span class="text-muted">envoyée(s)</span>

@@ -29,6 +29,8 @@
       rel="stylesheet"
     />
 
+    <script src="https://cdn.ckeditor.com/ckeditor5/11.0.1/classic/ckeditor.js"></script>
+
     @yield('css')
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])     

@@ -78,7 +78,7 @@
                                                     <div class="mb-3 col-md-12">
                                                         <label class="form-label" for="description">Description</label>
                                                         <div class="input-group input-group-merge">
-                                                            <textarea class="form-control" name="description" id="" cols="30" rows="5" placeholder="Description du pack...">{{ old('description') }}</textarea>
+                                                            <textarea class="form-control" name="description" style="width: 100% !important; height:100%;" id="editorPacks" placeholder="Description du pack...">{!! old('description') !!}</textarea>
                                                         </div>
                                                     </div>
                                                     <div class="mb-3 col-md-12">
@@ -128,5 +128,19 @@
 @endsection
 
 @section('js')
-    
+<script>
+    ClassicEditor.create( document.querySelector( '#editorPacks' ), 
+        {
+            toolbar: {
+                items: [
+                    'heading', '|', 'bold', 'italic', '|', 'bulletedList', 'numberedList', '|', 'link', 'blockQuote', '|', 'undo', 'redo',
+                ]
+            }
+        } 
+    ).catch( error => {
+            alert('Text editor is not available right now.\nPlease, try again later!');
+        } 
+    );
+
+</script>
 @endsection

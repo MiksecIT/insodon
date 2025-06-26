@@ -148,9 +148,15 @@
                                                                     <span class="badge bg-label-secondary">donateur introuvable</span>
                                                                     @endif  
                                                                     
-                                                                    @if ($don->isFusioned() == false)
+                                                                    @if ($don->isFusioned() == false && auth()->user()->isPartOfAdmin())
                                                                         <a href="{{ route('associations.createFromDon', $don->reference) }}" style="display: block; width:100%; margin-top:20px;" type="button" class="btn btn-primary">
-                                                                            <span class="tf-icons bx bx-link"></span> Associer @convert($don->remaining_amount) <span class="text-muted">FCFA</span>
+                                                                            <span class="tf-icons bx bx-link"></span> 
+                                                                            Associer 
+                                                                            @if (!is_null($don->remaining_amount) && $don->remaining_amount > 0)
+                                                                            &bullet;
+                                                                            @convert($don->remaining_amount) 
+                                                                            <span class="text-muted">FCFA</span>
+                                                                            @endif
                                                                         </a>
                                                                     @endif
                                                                 </div>

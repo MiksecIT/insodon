@@ -10,6 +10,8 @@ use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Auth;
 use App\Providers\RouteServiceProvider;
 
+use RealRashid\SweetAlert\Facades\Alert;
+
 class GoogleLoginController extends Controller
 {
     public function redirectToGoogle()
@@ -45,6 +47,46 @@ class GoogleLoginController extends Controller
 
         Auth::login($user);
 
+        return !is_null(auth()->user()->user_id) ? redirect(RouteServiceProvider::HOME) : redirect()->route('google.referal.check');
+    }
+
+    /**
+     * Show the form to enter referal reference
+     *
+     * @return void
+     */
+    public function checkReferalAfterGoogle ()
+    {
+        if (is_null(auth()->user()->user_id)) {
+            return view('auth.referal');
+        }
+        return redirect(RouteServiceProvider::HOME);
+    }
+
+    /**
+     * Save user referal
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function confirmReferalAfterGoogle (Request $request)
+    {
+        if (is_null(auth()->user()->user_id)) {
+            if ($request->has('r')) {
+                $user = User::where('reference', $request->r)->first();
+                if (is_null($user)) {
+                    alert()->error("Introuvable", "Le code référent renseigné est introuvable.")->persistent();
+                    return redirect()->back();    
+                }
+
+                auth()->user()->user_id = $user->id;
+                auth()->user()->save();
+
+            } else {
+                alert()->error("Oups", "Impossible de traiter votre requête pour le moment.\n Veuillez recommencer plus tard")->persistent();
+                return redirect()->back();
+            }
+        }
         return redirect(RouteServiceProvider::HOME);
     }
 }

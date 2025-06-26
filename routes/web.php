@@ -27,9 +27,12 @@ Route::group(['namespace' => 'App\\Http\\Controllers'], function(){
     Route::get('/google/redirect', [App\Http\Controllers\GoogleLoginController::class, 'redirectToGoogle'])->name('google.redirect');
     Route::get('/google/callback', [App\Http\Controllers\GoogleLoginController::class, 'handleGoogleCallback'])->name('google.callback');
 
+    Route::get('referal/check', [App\Http\Controllers\GoogleLoginController::class, 'checkReferalAfterGoogle'])->name('google.referal.check');
+    Route::post('referal/confirm', [App\Http\Controllers\GoogleLoginController::class, 'confirmReferalAfterGoogle'])->name('google.referal.confirm');
+
     Auth::routes();
 
-    Route::get('maintenance', 'App\\Http\\Controllers\\PageController@maintenance')->name('app.maintenance');
+    Route::get('maintenance', 'App\\Http\\Controllers\\PageController@maintenance')->name('app.maintenance')->middleware('auth');
 
     Route::get('/home', 'HomeController@index')->name('home');
 
@@ -45,6 +48,7 @@ Route::group(['namespace' => 'App\\Http\\Controllers'], function(){
     Route::resource('chats', 'ChatsController')->middleware('auth');
 
     Route::resource('notifications', 'NotificationsController')->middleware('auth');
+    
     Route::resource('packs', 'PacksController')->middleware('auth');
     Route::resource('gifts', 'DonsController')->middleware('auth');
     Route::group(['prefix' => 'gifts'], function(){

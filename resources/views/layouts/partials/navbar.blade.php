@@ -66,10 +66,18 @@
                     </li>
                     <li>
                       <a class="dropdown-item" href="{{ route('home') }}">
-                        <i class="bx bx-user me-2"></i>
+                        <i class="bx bx-home me-2"></i>
                         <span class="align-middle">Tableau de bord</span>
                       </a>
                     </li>
+
+                    <li>
+                      <a class="dropdown-item" href="{{ route('users.show', auth()->user()->reference) }}">
+                        <i class="bx bx-user me-2"></i>
+                        <span class="align-middle">Mon profile</span>
+                      </a>
+                    </li>
+
                     <li>
                       <a class="dropdown-item" href="{{ route('gifts.index') }}">
                         <i class="bx bx-gift me-2"></i>

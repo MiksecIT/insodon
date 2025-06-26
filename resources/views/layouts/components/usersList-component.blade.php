@@ -45,7 +45,9 @@
                             @endif
                         @endif
                     </a>
-
+                    @if (auth()->user()->id == $user->id)
+                    <span class="badge bg-label-secondary">Vous</span> 
+                    @endif
                     @if (auth()->user()->isPartOfAdmin())
                         @if (!is_null($user->role))
                         <br><br>

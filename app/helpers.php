@@ -35,7 +35,7 @@ if (! function_exists('load_asset_url')) {
                 }            
             }
         }
-        return asset(Utils::loadAppSettings()->image_default);
+        return asset("uploads/default.png");
     }   
 }
 

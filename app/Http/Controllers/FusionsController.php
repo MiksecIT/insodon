@@ -75,6 +75,16 @@ class FusionsController extends Controller
                 return \Redirect::back();
             }
 
+            if ($fusion->don->isCompleted() || $fusion->reward->isCompleted()) {
+                alert()->error("Erreur", "Le don ou la recompense a déjà été éffectué(e)")->persistent();
+                return \Redirect::back();
+            }
+
+            if ($fusion->don->isFusioned() || $fusion->reward->isFusioned()) {
+                alert()->error("Erreur", "Le don ou la recompense a déjà été complètement fusioné(e)")->persistent();
+                return \Redirect::back();
+            }
+
             if (is_null($fusion->don->pack) ) {
                 alert()->error("Erreur", "Impossible de trouver le pack associé.")->persistent();
                 return \Redirect::back();
@@ -82,6 +92,11 @@ class FusionsController extends Controller
 
             if (is_null($fusion->don->user) || is_null($fusion->reward->user)) {
                 alert()->error("Erreur", "Impossible de trouver l'expéditeur ou le destinataire associé.")->persistent();
+                return \Redirect::back();
+            }
+
+            if ($fusion->don->user->id == $fusion->reward->user->id) {
+                alert()->error("Erreur", "L'expéditeur et le destinataire sont identiques.")->persistent();
                 return \Redirect::back();
             }
 
@@ -173,7 +188,7 @@ class FusionsController extends Controller
                         if ($fusion->reward->source == "don" && $fusion->reward->isInitiale() == false) {
                             # Make sure current has a parent
                             if (!is_null($fusion->reward->user->parent)) {
-                                $royalties = \App\Models\Royalty::create([
+                                $royalty = \App\Models\Royalty::create([
                                     "reference" => \App\Utils\Utils::generateReference(Royalty::all(), \App\Utils\Utils::fakeToken(20), 1),
                                     "reward_id" => $fusion->reward->id, 
                                     "target" => $fusion->reward->user->parent->id,
@@ -192,7 +207,7 @@ class FusionsController extends Controller
                     }
                 }
 
-                alert()->success("Reception confirmé", "Félicitations ".$fusion->receiver()->name." !! Vous avez confirmé la reception du montant envoyé par ".$fusion->receiver()->name.".")->persistent();               
+                alert()->success("Reception confirmé", "Félicitations ".$fusion->receiver()->name." !! Vous avez confirmé la reception du montant envoyé par ".$fusion->sender()->name.".")->persistent();               
                 return redirect()->route("associations.index");
             }
             # Unknown
@@ -421,6 +436,11 @@ class FusionsController extends Controller
             
             if (is_null($don->user) || is_null($reward->user)) {
                 alert()->error("Introuvable", "Le donateur ou le bénéficaire est introuvable")->persistent();
+                return redirect()->back();
+            }
+
+            if ($don->user->id == $reward->user->id) {
+                alert()->error("Erreur", "Correspondants identiques")->persistent();
                 return redirect()->back();
             }
 

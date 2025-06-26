@@ -57,7 +57,7 @@
                                                     <div class="mb-3 col-md-12">
                                                         <label class="form-label" for="terms">Contenu</label>
                                                         <div class="input-group input-group-merge">
-                                                            <textarea class="form-control" name="terms" id="" cols="30" rows="20" placeholder="Contenu des conditions d'utilisations...">{!! \App\Utils\Utils::appSettings()->terms !!}</textarea>
+                                                            <textarea class="form-control" name="terms" id="editorTerms" cols="30" rows="20" placeholder="Contenu des conditions d'utilisations...">{!! \App\Utils\Utils::appSettings()->terms !!}</textarea>
                                                         </div>
                                                     </div>
                                                     <div class="row">
@@ -96,7 +96,7 @@
                                                     <div class="mb-3 col-md-12">
                                                         <label class="form-label" for="terms">Contenu</label>
                                                         <div class="input-group input-group-merge">
-                                                            <textarea class="form-control" name="privacy" id="" cols="30" rows="20" placeholder="Contenu de la politique de confidentialité...">{!! \App\Utils\Utils::appSettings()->privacy !!}</textarea>
+                                                            <textarea class="form-control" name="privacy" id="editorPrivacy" cols="30" rows="20" placeholder="Contenu de la politique de confidentialité...">{!! \App\Utils\Utils::appSettings()->privacy !!}</textarea>
                                                         </div>
                                                     </div>
                                                     <div class="row">
@@ -211,8 +211,9 @@
                                                                             @if (!is_null(auth()->user()->country))
                                                                                 @if($country->id == auth()->user()->country->id) 
                                                                                     selected="" 
-                                                                                @endif value="{{$country->id}}">{{ $country->label }}
+                                                                                @endif 
                                                                             @endif
+                                                                            value="{{$country->id}}">{{ $country->label }}
                                                                         </option>
                                                                         @empty
                                                                         @endforelse
@@ -409,7 +410,7 @@
                                                                     <div class="flex-grow-1 row">
                                                                         <div class="col mb-sm-0 mb-2">
                                                                             <h6 class="mb-0">Message de bienvenue</h6>
-                                                                            <small class="text-muted">Message de bienvenue à afficher dans la barre du haut</small>
+                                                                            <small class="text-muted">Message de bienvenue à afficher dans la barre du haut juste après <strong>Hello, {{ auth()->user()->name }}</strong></small>
                                                                             <textarea class="form-control" placeholder="Ecrivez le message ici..." name="welcome" cols="30" rows="4">{{ \App\Utils\Utils::appSettings()->welcome }}</textarea>
                                                                         </div>
                                                                     </div>
@@ -637,5 +638,31 @@
 @endsection
 
 @section('js')
-    
+<script>
+    ClassicEditor.create( document.querySelector( '#editorPrivacy' ), 
+        {
+            toolbar: {
+                items: [
+                    'heading', '|', 'bold', 'italic', '|', 'bulletedList', 'numberedList', '|', 'link', 'blockQuote', '|', 'undo', 'redo',
+                ]
+            }
+        } 
+    ).catch( error => {
+            alert('Text editor is not available right now.\nPlease, try again later!');
+        } 
+    );
+
+    ClassicEditor.create( document.querySelector( '#editorTerms' ), 
+        {
+            toolbar: {
+                items: [
+                    'heading', '|', 'bold', 'italic', '|', 'bulletedList', 'numberedList', '|', 'link', 'blockQuote', '|', 'undo', 'redo',
+                ]
+            }
+        } 
+    ).catch( error => {
+            alert('Text editor is not available right now.\nPlease, try again later!');
+        } 
+    );
+</script>
 @endsection

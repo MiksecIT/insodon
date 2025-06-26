@@ -21,22 +21,36 @@
                         
                         <div class="row mb-3">
                             <div class="col-md-8">
-                                <h4 class="fw-bold py-3">Détails utilisateur <a href="#!"><strong>{{ $user->reference }}</strong></a></h4>
+                                <h4 class="fw-bold py-3">
+                                    Détails utilisateur &rarr; <a href="#!"><strong>{{ $user->name }}</strong></a> 
+                                    @if (auth()->user()->id == $user->id)
+                                    <span class="badge bg-label-secondary">Vous</span> 
+                                    @endif                               
+                                </h4>
                                 <p class="text-muted">
                                     <span class="text-muted" style="font-size: 13px;">
-                                        <a href="{{ route('users.index') }}">&larr; Liste des utilisateurs</a>
+                                        
+                                        @if (auth()->user()->isPartOfAdmin())
+                                        <a href="{{ route('users.index') }}"><span class="tf-icons bx bx-group"></span> Liste des utilisateurs</a>
+                                        @endif
+
                                         @if (!is_null($user->message))
+                                            @if (auth()->user()->id == $user->id || auth()->user()->isPartOfAdmin())
                                         &bullet;
                                         <a href="{{ route('app.support.details', $user->message->reference) }}"> <span class="tf-icons bx bx-support"></span> Voir le recours au support</a>
+                                            @endif
                                         @endif
+
                                     </span>
                                 </p>
                             </div>
-                            @if (auth()->user()->isPartOfAdmin())
+                            
                             <div class="col-md-4">
+                                @if (auth()->user()->isPartOfAdmin())
                                 <a href="{{ route('users.edit', $user->reference) }}" type="button" class="btn btn-outline-secondary">
                                     <span class="tf-icons bx bx-edit"></span>&nbsp; Modifier
                                 </a>
+                                @endif
                                 @if (auth()->user()->isTopManager())
                                 <a href="#!" type="button" class="btn btn-outline-{{ $user->isBlocked() ? 'primary' : 'danger' }}"
                                     title="Suspendre {{ $user->name }}"
@@ -101,7 +115,7 @@
                                 </a>
                                 @endif
                             </div>
-                            @endif
+                            
                         </div>  
 
                         <div class="row">
@@ -243,7 +257,21 @@
                                                                     <strong>Création:</strong> 
                                                                     {{ $user->created_at }}
                                                                 </div>
-                                                                <hr>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card mb-4">
+                                                        <div class="card-header">
+                                                            <span class="tf-icons bx bx-group"></span> Communauté
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <div class="row">
+                                                                <div class="col-12 mb-3">
+                                                                    <strong>Code référent:</strong> 
+                                                                    <strong class="text-primary">
+                                                                        {{ $user->reference }}
+                                                                    </strong>
+                                                                </div>
                                                                 <div class="col-12 mb-3"> 
                                                                     <strong>Parrain:</strong> 
                                                                     @if (!is_null($user->parent))                                                    
