@@ -30,7 +30,7 @@ Route::group(['namespace' => 'App\\Http\\Controllers'], function(){
     Route::get('referal/check', [App\Http\Controllers\GoogleLoginController::class, 'checkReferalAfterGoogle'])->name('google.referal.check');
     Route::post('referal/confirm', [App\Http\Controllers\GoogleLoginController::class, 'confirmReferalAfterGoogle'])->name('google.referal.confirm');
 
-    Auth::routes();
+    Auth::routes(['verify' => true]);
 
     Route::get('maintenance', 'App\\Http\\Controllers\\PageController@maintenance')->name('app.maintenance')->middleware('auth');
 
