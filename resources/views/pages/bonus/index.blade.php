@@ -122,7 +122,7 @@
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     @if (count($pending) >0)
-                                                    @include("layouts.components.bonusList-component", ["bonus" => $all, "view" => "pending"])
+                                                    @include("layouts.components.bonusList-component", ["bonus" => $pending, "view" => "pending"])
                                                     @else
                                                     <div class="badge bg-label-secondary">Pas disponible</div>
                                                     @endif
@@ -134,14 +134,14 @@
                                             <div class="row mb-3">
                                                 <div class="col-sm-12">
                                                     <p>
-                                                        Tous les bonus reclamés et en attente de paiement actuellement
+                                                        Tous les bonus reclamés et en attente d'approbation actuellement
                                                     </p>
                                                 </div>
                                             </div>
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     @if (count($claimed) >0)
-                                                    @include("layouts.components.bonusList-component", ["bonus" => $all, "view" => "claimed"])
+                                                    @include("layouts.components.bonusList-component", ["bonus" => $claimed, "view" => "claimed"])
                                                     @else
                                                     <div class="badge bg-label-secondary">Pas disponible</div>
                                                     @endif
@@ -153,14 +153,14 @@
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     <p>
-                                                        Tous les bonus approuvés actuellement
+                                                        Tous les bonus approuvés et en attente de paiement actuellement
                                                     </p>
                                                 </div>
                                             </div>
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     @if (count($approuved) >0)
-                                                    @include("layouts.components.bonusList-component", ["bonus" => $all, "view" => "approuved"])
+                                                    @include("layouts.components.bonusList-component", ["bonus" => $approuved, "view" => "approuved"])
                                                     @else
                                                     <div class="badge bg-label-secondary">Pas disponible</div>
                                                     @endif
@@ -179,7 +179,7 @@
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     @if (count($completed) >0)
-                                                    @include("layouts.components.bonusList-component", ["bonus" => $all, "view" => "completed"])
+                                                    @include("layouts.components.bonusList-component", ["bonus" => $completed, "view" => "completed"])
                                                     @else
                                                     <div class="badge bg-label-secondary">Pas disponible</div>
                                                     @endif

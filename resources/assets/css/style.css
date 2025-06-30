@@ -1,7 +1,20 @@
 /*
-* demo.css
-* File include item demo only specific css only
+* style.css
 ******************************************************************************/
+
+.image-preview {
+  height: auto;
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid #eee;
+}
+
+.image-preview img {
+  height: 100%;
+  width: 100%;
+}
 
 .menu .app-brand.demo {
   height: 64px;

@@ -86,7 +86,7 @@
                 <div data-i18n="Account">Dons 
                   <span style="margin-left:4px;" class="text-muted">
                     @if (auth()->user()->isPartOfAdmin())
-                    {{ \App\Models\Don::count() }}
+                    {{ count(auth()->user()->dons) }}/{{ \App\Models\Don::count() }}
                     @else
                     {{ count(auth()->user()->dons) }}
                     @endif
@@ -103,7 +103,7 @@
                   @else
                   <span style="margin-left:4px;" class="text-muted">
                     @if (auth()->user()->isPartOfAdmin())
-                    {{ \App\Models\Fusion::count() }}
+                    {{ count(auth()->user()->relatedFusions()) }}/{{ \App\Models\Fusion::count() }}
                     @else
                     {{ count(auth()->user()->relatedFusions()) }}
                     @endif
@@ -119,7 +119,7 @@
                 <div data-i18n="Notifications">Récompenses 
                   <span style="margin-left:4px;" class="text-muted">
                     @if (auth()->user()->isPartOfAdmin())
-                    {{ \App\Models\Reward::count() }}
+                    {{ count(auth()->user()->rewards) }}/{{ \App\Models\Reward::count() }}
                     @else
                     {{ count(auth()->user()->rewards) }}
                     @endif
@@ -136,7 +136,7 @@
                 <div data-i18n="Bonus">Bonus 
                   <span style="margin-left:4px;" class="text-muted">
                     @if (auth()->user()->isPartOfAdmin())
-                    {{ \App\Models\Royalty::count() }}
+                    {{ count(auth()->user()->gainedRoyalties) }}/{{ \App\Models\Royalty::count() }}
                     @else
                     {{ count(auth()->user()->gainedRoyalties) }}
                     @endif
@@ -211,5 +211,82 @@
             </li>
             @endif
 
+            @if (1==2)
+            <li class="menu-item {{ Route::is('app.search*') ? 'active' : ''}}">
+              <a href="#!" 
+                title="Faire une recherche"
+                type="button" 
+                data-bs-toggle="modal"
+                data-bs-target="#searchModal"
+                class="menu-link">
+                <i class="menu-icon tf-icons bx bx-search"></i>
+                <div data-i18n="Boxicons">Recherche</div>
+              </a>              
+            </li>
+            @endif
+
           </ul>
+          
         </aside>
+                @if (1==2)
+                <div class="modal fade" id="searchModal" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-scrollable" role="document">
+                  <div class="modal-content">
+                      <div class="modal-header">
+                          <h5 class="modal-title" id="modalCenterTitle">
+                            Recherche
+                          </h5>
+                          <button
+                              type="button"
+                              class="btn-close"
+                              data-bs-dismiss="modal"
+                              aria-label="Close"
+                          ></button>
+                      </div>
+                      <div class="modal-body">
+                          <div class="row">
+                              <div class="col">
+                                <form id="form-search" action="{{ route('app.search.init') }}" method="POST">
+                                  @csrf
+                                  <div class="col-md mb-4">
+                                      <small class="text-light fw-semibold">Référence</small>
+                                      <input type="text" required name="s" class="form-control" placeholder="Entrer une reference">
+                                  </div>
+                                  <div class="col-md">
+                                    <small class="text-light fw-semibold">Sélectionner la cible</small>
+                                    <div class="form-check mt-1">
+                                      <input name="c" class="form-check-input" type="radio" value="gifts">
+                                      <label class="form-check-label" for="currency1"> Dons </label>
+                                    </div>
+                                    <div class="form-check mt-1">
+                                      <input name="c" class="form-check-input" type="radio" value="assoc">
+                                      <label class="form-check-label" for="currency1"> Associations </label>
+                                    </div>
+                                    <div class="form-check mt-1">
+                                      <input name="c" class="form-check-input" type="radio" value="gifts">
+                                      <label class="form-check-label" for="currency1"> Recompenses </label>
+                                    </div>
+                                    <div class="form-check mt-1">
+                                      <input name="c" class="form-check-input" type="radio" value="bonus">
+                                      <label class="form-check-label" for="currency1"> Bonus </label>
+                                    </div>
+                                    <div class="form-check mt-1">
+                                      <input name="c" class="form-check-input" type="radio" value="users">
+                                      <label class="form-check-label" for="currency1"> Utilisateurs </label>
+                                    </div>
+                                  </div>
+                                </form>                                   
+                              </div>
+                          </div>
+                      </div>
+                      <div class="modal-footer">
+                          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                              Fermer
+                          </button>
+                          <button onclick="$('#form-search').submit();" type="button" class="btn btn-primary">Rechercher</button>
+                          
+                      </div>
+                  </div>
+                  </div>
+                </div>
+                @endif

@@ -45,6 +45,9 @@ Route::group(['namespace' => 'App\\Http\\Controllers'], function(){
     Route::post('settings/user', 'PageController@settingsUser')->name('app.settings.user')->middleware('auth');
     Route::post('settings/app', 'PageController@settingsApp')->name('app.settings.app')->middleware('auth');
 
+    Route::post('search', 'PageController@search')->name('app.search.init')->middleware('auth');
+    Route::get('search', 'PageController@searchResult')->name('app.search.result')->middleware('auth');
+
     Route::resource('chats', 'ChatsController')->middleware('auth');
 
     Route::resource('notifications', 'NotificationsController')->middleware('auth');
@@ -53,9 +56,8 @@ Route::group(['namespace' => 'App\\Http\\Controllers'], function(){
     Route::resource('gifts', 'DonsController')->middleware('auth');
     Route::group(['prefix' => 'gifts'], function(){
         Route::post('create/reward', 'DonsController@createReward')->name('gifts.reward.create')->middleware('auth');
-        Route::get('series/{reference}', 'DonsController@suitsDetails')->name('gifts.series.details')->middleware('auth');
-        Route::get('series/{reference}/donate/second', 'DonsController@suitsDonateSecond')->name('gifts.suits.donate.second')->middleware('auth');
-        Route::get('series/{reference}/donate/third', 'DonsController@suitsDonateThird')->name('gifts.suits.donate.third')->middleware('auth');
+        Route::get('series/all/list', 'DonsController@seriesList')->name('gifts.series.list')->middleware('auth');
+        Route::get('series/{reference}', 'DonsController@seriesDetails')->name('gifts.series.details')->middleware('auth');
     });
     Route::resource('faqs', 'FaqsController')->middleware('auth');
     Route::resource('associations', 'FusionsController')->middleware('auth');

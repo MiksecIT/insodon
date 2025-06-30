@@ -52,9 +52,9 @@ class Reward extends Model
     {
         if (count($this->royalties) > 0 && $this->isCompleted()) {
             foreach ($this->royalties as $r) {
-                if ($r->isClaimed() && $r->isReceived() == false) {
+                if ($r->isClaimed() && $r->isApprouved() && $r->isReceived() == false) {
                     $r->is_received = $this->is_received;
-                    $r->received_at = $this->received_at;
+                    $r->received_at = $this->last_received_at;
                     $r->save();
                 }
             }
@@ -94,7 +94,7 @@ class Reward extends Model
                     }
                 }
             } else if ($this->source == "bonus") {
-                return true;
+                return $this->isApprouvedForBonus();
             } 
         } 
         return false;
@@ -107,7 +107,7 @@ class Reward extends Model
      */
     public function isApprouvedForBonus ()
     {
-        return $this->source == "bonus" && count($this->royalties) > 0 && $this->is_royalties_withdraw_enabled && !is_null($this->royalties_withdraw_enabled_at);
+        return $this->source == "bonus" && count($this->royalties) > 0 && $this->is_royalties_withdraw_enabled == 1 && !is_null($this->royalties_withdraw_enabled_at);
     }
 
     /**

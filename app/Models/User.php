@@ -210,7 +210,8 @@ class User extends Authenticatable
                 "reference" => \App\Utils\Utils::generateReference(Don::all(), \App\Utils\Utils::fakeToken(20), 1),
                 "user_id" => $this->id,
                 "pack_id" => $pack->id,
-                "amount" => $pack->amount,
+                "is_usd" => $data["is_usd"],
+                "amount" => $data["is_usd"] ? $pack->amount_usd : $pack->amount,
                 "is_first" => $data["is_first"],
                 "don_id" => $data["don_id"],
                 "position" => $data["position"],
@@ -355,6 +356,46 @@ class User extends Authenticatable
     }
 
     /**
+     * Completed royalties USD
+     *
+     * @return void
+     */
+    public function completedRoyaltiesUSD ()
+    {
+        $array = [];
+        if (count($this->gainedRoyalties)) {
+            foreach ($this->gainedRoyalties as $r) {
+                if ($r->isCompleted()) {
+                    if ($r->is_usd) {
+                        array_push($array, $r);
+                    }
+                }
+            }
+        }
+        return $array;
+    }
+
+    /**
+     * Completed royalties XOF
+     *
+     * @return void
+     */
+    public function completedRoyaltiesXOF ()
+    {
+        $array = [];
+        if (count($this->gainedRoyalties)) {
+            foreach ($this->gainedRoyalties as $r) {
+                if ($r->isCompleted()) {
+                    if ($r->is_usd == 0) {
+                        array_push($array, $r);
+                    }
+                }
+            }
+        }
+        return $array;
+    }
+
+    /**
      * Completed royalties
      *
      * @return void
@@ -365,6 +406,42 @@ class User extends Authenticatable
         if (count($this->completedRoyalties())) {
             foreach ($this->completedRoyalties() as $r) {
                 $amount += $r->value;
+            }
+        }
+        return $amount;
+    }
+
+    /**
+     * Completed USD royalties
+     *
+     * @return void
+     */
+    public function completedRoyaltiesAmountUSD ()
+    {
+        $amount = 0;
+        if (count($this->completedRoyalties())) {
+            foreach ($this->completedRoyalties() as $r) {
+                if ($r->is_usd) {
+                    $amount += $r->value;
+                }
+            }
+        }
+        return $amount;
+    }
+
+    /**
+     * Completed XOF royalties
+     *
+     * @return void
+     */
+    public function completedRoyaltiesAmountXOF ()
+    {
+        $amount = 0;
+        if (count($this->completedRoyalties())) {
+            foreach ($this->completedRoyalties() as $r) {
+                if ($r->is_usd == 0) {
+                    $amount += $r->value;
+                }
             }
         }
         return $amount;
@@ -425,6 +502,78 @@ class User extends Authenticatable
     }
 
     /**
+     * Return the count of all elligible XOF royalties
+     *
+     * @return void
+     */
+    public function elligibleRoyaltiesXOF ()
+    {
+        $array = [];
+        if (count($this->elligibleRoyalties())) {
+            foreach ($this->elligibleRoyalties() as $e) {
+                if ($e->is_usd == 0) {
+                    array_push($array, $e);
+                }
+            }
+        }
+        return $array;
+    }
+
+    /**
+     * Return the count of all elligible USD royalties
+     *
+     * @return void
+     */
+    public function elligibleRoyaltiesUSD ()
+    {
+        $array = [];
+        if (count($this->elligibleRoyalties())) {
+            foreach ($this->elligibleRoyalties() as $e) {
+                if ($e->is_usd) {
+                    array_push($array, $e);
+                }
+            }
+        }
+        return $array;
+    }
+
+    /**
+     * Return the total amount of all elligible XOF royalties
+     *
+     * @return void
+     */
+    public function elligibleRoyaltiesXOFAmount ()
+    {
+        $amount = 0;
+        if (count($this->elligibleRoyalties())) {
+            foreach ($this->elligibleRoyalties() as $e) {
+                if ($e->is_usd == 0) {
+                    $amount += $e->value;
+                }
+            }
+        }
+        return $amount;
+    }
+
+    /**
+     * Return the total amount of all elligible USD royalties
+     *
+     * @return void
+     */
+    public function elligibleRoyaltiesUSDAmount ()
+    {
+        $amount = 0;
+        if (count($this->elligibleRoyalties())) {
+            foreach ($this->elligibleRoyalties() as $e) {
+                if ($e->is_usd) {
+                    $amount += $e->value;
+                }
+            }
+        }
+        return $amount;
+    }
+
+    /**
      * Royalties created from affiliate rewards
      *
      * @return void
@@ -435,13 +584,153 @@ class User extends Authenticatable
     }
 
     /**
+     * USD Royalties created from affiliate rewards
+     *
+     * @return void
+     */
+    public function gainedRoyaltiesUSD ()
+    {
+        $array = [];
+        if (count($this->gainedRoyalties) > 0) {
+            foreach ($this->gainedRoyalties as $r) {
+                if ($r->is_usd) {
+                    array_push($array, $r);
+                }
+            }
+        }
+        return $array;
+    }
+
+    /**
+     * XOF Royalties created from affiliate rewards
+     *
+     * @return void
+     */
+    public function gainedRoyaltiesXOF ()
+    {
+        $array = [];
+        if (count($this->gainedRoyalties) > 0) {
+            foreach ($this->gainedRoyalties as $r) {
+                if ($r->is_usd == 0) {
+                    array_push($array, $r);
+                }
+            }
+        }
+        return $array;
+    }
+
+    /**
+     * USD total Amount for Royalties created from affiliate rewards
+     *
+     * @return void
+     */
+    public function gainedRoyaltiesUSDAmount ()
+    {
+        $amount = 0;
+        if (count($this->gainedRoyaltiesUSD()) > 0) {
+            foreach ($this->gainedRoyaltiesUSD() as $r) {
+                if ($r->is_usd) {
+                    $amount += $r->value;
+                }
+            }
+        }
+        return $amount;
+    }
+
+    /**
+     * XOF total Amount for Royalties created from affiliate rewards
+     *
+     * @return void
+     */
+    public function gainedRoyaltiesXOFAmount ()
+    {
+        $amount = 0;
+        if (count($this->gainedRoyaltiesXOF()) > 0) {
+            foreach ($this->gainedRoyaltiesXOF() as $r) {
+                if ($r->is_usd == 0) {
+                    $amount += $r->value;
+                }
+            }
+        }
+        return $amount;
+    }
+
+    /**
      * Related dons
      *
      * @return void
      */
     public function dons ()
     {
-        return $this->hasMany(Don::class, "user_id")->orderBy("created_at", "asc");
+        return $this->hasMany(Don::class, "user_id")->orderByDesc("created_at");
+    }
+    /**
+     * Related dons USD
+     *
+     * @return void
+     */
+    public function donsUSD ()
+    {
+        $array = [];
+        if (count($this->dons) > 0) {
+            foreach ($this->dons as $don) {
+                if ($don->is_usd) {
+                    array_push($array, $don);
+                }
+            }
+        }
+        return $array;
+    }
+    /**
+     * Related dons XOF
+     *
+     * @return void
+     */
+    public function donsXOF ()
+    {
+        $array = [];
+        if (count($this->dons) > 0) {
+            foreach ($this->dons as $don) {
+                if ($don->is_usd == 0) {
+                    array_push($array, $don);
+                }
+            }
+        }
+        return $array;
+    }
+    /**
+     * Related dons USD amount
+     *
+     * @return void
+     */
+    public function donsUSDAmount ()
+    {
+        $amount = 0;
+        if (count($this->donsUSD()) > 0) {
+            foreach ($this->donsUSD() as $don) {
+                if ($don->is_usd) {
+                    $amount += $don->amount;
+                }
+            }
+        }
+        return $amount;
+    }
+    /**
+     * Related dons XOF amount
+     *
+     * @return void
+     */
+    public function donsXOFAmount ()
+    {
+        $amount = 0;
+        if (count($this->donsXOF()) > 0) {
+            foreach ($this->donsXOF() as $don) {
+                if ($don->is_usd == 0) {
+                    $amount += $don->amount;
+                }
+            }
+        }
+        return $amount;
     }
     /**
      * Check if user has don
@@ -471,6 +760,24 @@ class User extends Authenticatable
         if (!is_null($pack)) {
             if (count($this->donsCompleted()) > 0) {
                 foreach ($this->donsCompleted() as $d) {
+                    if ($pack->id == $d->pack_id) {
+                        return true;
+                    }
+                }
+            }
+        } return false;
+    }
+    /**
+     * Check if user has once initiated a donation for the given pack
+     *
+     * @param Pack $pack
+     * @return boolean
+     */
+    public function hasDonation (Pack $pack)
+    {
+        if (!is_null($pack)) {
+            if (count($this->dons) > 0) {
+                foreach ($this->dons as $d) {
                     if ($pack->id == $d->pack_id) {
                         return true;
                     }
@@ -525,6 +832,74 @@ class User extends Authenticatable
         return $array;
     }
     /**
+     * Related completed dons USD
+     *
+     * @return void
+     */
+    public function donsCompletedUSD ()
+    {
+        $array = [];
+        if (count($this->donsCompleted()) > 0) {
+            foreach ($this->donsCompleted() as $don) {
+                if ($don->is_usd) {
+                    array_push($array, $don);
+                }
+            }
+        }
+        return $array;
+    }
+    /**
+     * Related completed dons XOF
+     *
+     * @return void
+     */
+    public function donsCompletedXOF ()
+    {
+        $array = [];
+        if (count($this->donsCompleted()) > 0) {
+            foreach ($this->donsCompleted() as $don) {
+                if ($don->is_usd == 0) {
+                    array_push($array, $don);
+                }
+            }
+        }
+        return $array;
+    }
+    /**
+     * Related completed dons USD Amount
+     *
+     * @return void
+     */
+    public function donsCompletedUSDAmount ()
+    {
+        $amount = 0;
+        if (count($this->donsCompletedUSD()) > 0) {
+            foreach ($this->donsCompletedUSD() as $don) {
+                if ($don->is_usd) {
+                    $amount += $don->amount;
+                }
+            }
+        }
+        return $amount;
+    }
+    /**
+     * Related completed dons XOF Amount
+     *
+     * @return void
+     */
+    public function donsCompletedXOFAmount ()
+    {
+        $amount = 0;
+        if (count($this->donsCompletedXOF()) > 0) {
+            foreach ($this->donsCompletedXOF() as $don) {
+                if ($don->is_usd == 0) {
+                    $amount += $don->amount;
+                }
+            }
+        }
+        return $amount;
+    }
+    /**
      * Related completed dons amount
      *
      * @return void
@@ -572,6 +947,174 @@ class User extends Authenticatable
     public function rewards ()
     {
         return $this->hasMany(Reward::class, "user_id")->orderByDesc("created_at");
+    }
+    /**
+     * Related completed rewards
+     *
+     * @return void
+     */
+    public function rewardsCompleted ()
+    {
+        $array = [];
+        if (count($this->rewards) > 0) {
+            foreach ($this->rewards as $r) {
+                if ($r->isCompleted()) {
+                    array_push($array, $r);
+                }
+            }
+        }
+        return $array;
+    }
+    /**
+     * Related completed rewards USD
+     *
+     * @return void
+     */
+    public function rewardsCompletedUSD ()
+    {
+        $array = [];
+        if (count($this->rewardsCompleted()) > 0) {
+            foreach ($this->rewardsCompleted() as $r) {
+                if ($r->is_usd) {
+                    array_push($array, $r);
+                }
+            }
+        }
+        return $array;
+    }
+    /**
+     * Related completed rewards XOF
+     *
+     * @return void
+     */
+    public function rewardsCompletedXOF ()
+    {
+        $array = [];
+        if (count($this->rewardsCompleted()) > 0) {
+            foreach ($this->rewardsCompleted() as $r) {
+                if ($r->is_usd == 0) {
+                    array_push($array, $r);
+                }
+            }
+        }
+        return $array;
+    }
+    /**
+     * Related completed rewards amount
+     *
+     * @return void
+     */
+    public function rewardsCompletedAmount ()
+    {
+        $amount = 0;
+        if (count($this->rewardsCompleted()) > 0) {
+            foreach ($this->rewardsCompleted() as $r) {
+                $amount += $r->amount;
+            }
+        }
+        return $amount;
+    }
+    /**
+     * Related completed rewards amount USD
+     *
+     * @return void
+     */
+    public function rewardsCompletedAmountUSD ()
+    {
+        $amount = 0;
+        if (count($this->rewardsCompleted()) > 0) {
+            foreach ($this->rewardsCompleted() as $r) {
+                if ($r->is_usd) {
+                    $amount += $r->amount;
+                }
+            }
+        }
+        return $amount;
+    }
+    /**
+     * Related completed rewards amount XOF
+     *
+     * @return void
+     */
+    public function rewardsCompletedAmountXOF ()
+    {
+        $amount = 0;
+        if (count($this->rewardsCompleted()) > 0) {
+            foreach ($this->rewardsCompleted() as $r) {
+                if ($r->is_usd == 0) {
+                    $amount += $r->amount;
+                }
+            }
+        }
+        return $amount;
+    }
+    /**
+     * Related rewards USD
+     *
+     * @return void
+     */
+    public function rewardsUSD ()
+    {
+        $array = [];
+        if (count($this->rewards) > 0) {
+            foreach ($this->rewards as $r) {
+                if ($r->is_usd) {
+                    array_push($array, $r);
+                }
+            }
+        }
+        return $array; 
+    }
+    /**
+     * Related rewards XOF
+     *
+     * @return void
+     */
+    public function rewardsXOF ()
+    {
+        $array = [];
+        if (count($this->rewards) > 0) {
+            foreach ($this->rewards as $r) {
+                if ($r->is_usd == 0) {
+                    array_push($array, $r);
+                }
+            }
+        }
+        return $array; 
+    }
+    /**
+     * Related rewards USD amount
+     *
+     * @return void
+     */
+    public function rewardsUSDAmount ()
+    {
+        $amount = 0;
+        if (count($this->rewardsUSD()) > 0) {
+            foreach ($this->rewardsUSD() as $r) {
+                if ($r->is_usd) {
+                    $amount += $r->amount;
+                }
+            }
+        }
+        return $amount; 
+    }
+    /**
+     * Related rewards XOF amount
+     *
+     * @return void
+     */
+    public function rewardsXOFAmount ()
+    {
+        $amount = 0;
+        if (count($this->rewardsUSD()) > 0) {
+            foreach ($this->rewardsUSD() as $r) {
+                if ($r->is_usd == 0) {
+                    $amount += $r->amount;
+                }
+            }
+        }
+        return $amount; 
     }
     /**
      * Check if user has reward
@@ -647,6 +1190,36 @@ class User extends Authenticatable
         return Fusion::orderByDesc('created_at')->where('sender', $this->id)->orWhere('receiver', $this->id)->get();
     }
     /**
+     * Related fusions USD
+     */
+    public function relatedFusionsUSD ()
+    {
+        $array = [];
+        if (count($this->relatedFusions()) > 0) {
+            foreach ($this->relatedFusions() as $f) {
+                if ($f->is_usd) {
+                    array_push($array, $f);
+                }
+            }
+        }
+        return $array; 
+    }
+    /**
+     * Related fusions XOF
+     */
+    public function relatedFusionsXOF ()
+    {
+        $array = [];
+        if (count($this->relatedFusions()) > 0) {
+            foreach ($this->relatedFusions() as $f) {
+                if ($f->is_usd == 0) {
+                    array_push($array, $f);
+                }
+            }
+        }
+        return $array; 
+    }
+    /**
      * Related fusions amount
      *
      * @return void
@@ -657,6 +1230,40 @@ class User extends Authenticatable
         if (count($this->relatedFusions()) > 0) {
             foreach ($this->relatedFusions() as $f) {
                 $amount += $f->amount;
+            }
+        }
+        return $amount;
+    }
+    /**
+     * Related fusions amount USD
+     *
+     * @return void
+     */
+    public function relatedFusionsAmountUSD ()
+    {
+        $amount = 0;
+        if (count($this->relatedFusions()) > 0) {
+            foreach ($this->relatedFusions() as $f) {
+                if ($f->is_usd) {
+                    $amount += $f->amount;
+                }
+            }
+        }
+        return $amount;
+    }
+    /**
+     * Related fusions amount XOF
+     *
+     * @return void
+     */
+    public function relatedFusionsAmountXOF ()
+    {
+        $amount = 0;
+        if (count($this->relatedFusions()) > 0) {
+            foreach ($this->relatedFusions() as $f) {
+                if ($f->is_usd == 0) {
+                    $amount += $f->amount;
+                }
             }
         }
         return $amount;
@@ -720,6 +1327,44 @@ class User extends Authenticatable
         return $array;
     }
     /**
+     * Pending related fusion USD
+     *
+     * @return void
+     */
+    public function completedRelatedFusionsUSD()
+    {
+        $array = [];
+        if (count($this->relatedFusions()) > 0) {
+            foreach ($this->relatedFusions() as $fusion) {
+                if ($fusion->isCompleted()) {
+                    if ($fusion->is_usd) {
+                        array_push($array, $fusion);
+                    }
+                }
+            }
+        }
+        return $array;
+    }
+    /**
+     * Pending related fusion XOF
+     *
+     * @return void
+     */
+    public function completedRelatedFusionsXOF()
+    {
+        $array = [];
+        if (count($this->relatedFusions()) > 0) {
+            foreach ($this->relatedFusions() as $fusion) {
+                if ($fusion->isCompleted()) {
+                    if ($fusion->is_usd == 0) {
+                        array_push($array, $fusion);
+                    }
+                }
+            }
+        }
+        return $array;
+    }
+    /**
      * Related completed fusions amount
      *
      * @return void
@@ -734,4 +1379,38 @@ class User extends Authenticatable
         }
         return $amount;
     }
+    /**
+     * Related completed fusions amount USD
+     *
+     * @return void
+     */
+    public function completedRelatedFusionsAmountUSD ()
+    {
+        $amount = 0;
+        if (count($this->completedRelatedFusions()) > 0) {
+            foreach ($this->completedRelatedFusions() as $f) {
+                if ($f->is_usd) {
+                    $amount += $f->amount;
+                }
+            }
+        }
+        return $amount;
+    }
+    /**
+     * Related completed fusions amount XOF
+     *
+     * @return void
+     */
+    public function completedRelatedFusionsAmountXOF ()
+    {
+        $amount = 0;
+        if (count($this->completedRelatedFusions()) > 0) {
+            foreach ($this->completedRelatedFusions() as $f) {
+                if ($f->is_usd == 0) {
+                    $amount += $f->amount;
+                }
+            }
+        }
+        return $amount;
+    }    
 }

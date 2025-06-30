@@ -329,11 +329,25 @@
                                             <form action="{{ route('app.settings.app') }}" method="POST">
                                                 @csrf
                                                 <div class="row mb-4">
-                                                    <div class="col-md-3">
+                                                    <div class="col-sm-6 col-md-4 col-lg-4 col-xl-4">
                                                         <div class="mb-4">
                                                             <h6><i class="tf-icons bx bx-detail"></i> Généralités</h6>
                                                             <p>Paramètres généraux</p>                                                    
                                                             <div class="alert alert-primary">
+                                                                @if (auth()->user()->isRoot())
+                                                                <div class="d-flex mb-3">
+                                                                    <div class="flex-grow-1 row">
+                                                                        <div class="col-9 mb-sm-0 mb-2">
+                                                                            <h6 class="mb-0"><i class="tf-icons bx bx-box"></i> Récompense initiale</h6>
+                                                                            <small class="text-muted">Autoriser cette fonctionalité</small>
+                                                                        </div>
+                                                                        <div class="col-3 text-end">
+                                                                            <div class="form-check form-switch">
+                                                                                <input class="form-check-input float-end" name="enable_reward_add" @if (\App\Utils\Utils::appSettings()->enable_reward_add) checked="" @endif type="checkbox" role="switch" />
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                                 <div class="d-flex mb-3">
                                                                     <div class="flex-grow-1 row">
                                                                         <div class="col-9 mb-sm-0 mb-2">
@@ -347,6 +361,7 @@
                                                                         </div>
                                                                     </div>
                                                                 </div>
+                                                                @endif
                                                                 <div class="d-flex mb-3">
                                                                     <div class="flex-grow-1 row">
                                                                         <div class="col-9 mb-sm-0 mb-2">
@@ -401,25 +416,9 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        
+                                                    </div>                                                    
+                                                    <div class="col-sm-6 col-md-4 col-lg-4 col-xl-4">
                                                         <div class="mb-4">
-                                                            <h6><i class="tf-icons bx bx-detail"></i> Valeurs</h6>
-                                                            <p>Les valeurs par défaut de l'application</p>                                                    
-                                                            <div class="alert alert-primary">
-                                                                <div class="d-flex mb-3">
-                                                                    <div class="flex-grow-1 row">
-                                                                        <div class="col mb-sm-0 mb-2">
-                                                                            <h6 class="mb-0">Message de bienvenue</h6>
-                                                                            <small class="text-muted">Message de bienvenue à afficher dans la barre du haut juste après <strong>Hello, {{ auth()->user()->name }}</strong></small>
-                                                                            <textarea class="form-control" placeholder="Ecrivez le message ici..." name="welcome" cols="30" rows="4">{{ \App\Utils\Utils::appSettings()->welcome }}</textarea>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <div>
                                                             <h6><i class="tf-icons bx bx-wallet"></i> Portefeuilles</h6>
                                                             <p>Autoriser les portefeuilles à utiliser dans l'application</p>                                                    
                                                             <div class="alert alert-primary">
@@ -507,7 +506,7 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-3">                                                    
+                                                    <div class="col-sm-6 col-md-4 col-lg-4 col-xl-4">                                                    
                                                         <div class="mb-4">
                                                             <h6><i class="tf-icons bx bx-block"></i> Suspension</h6>
                                                             <p>Gérer la suspension des utilisateurs</p>                                                    
@@ -546,7 +545,7 @@
                                                             </div>
                                                         </div>                                                   
                                                     </div>
-                                                    <div class="col-md-3">                                                    
+                                                    <div class="col-sm-6 col-md-4 col-lg-4 col-xl-4">                                                    
                                                         <div class="mb-4">
                                                             <h6><i class="tf-icons bx bx-box"></i> Recompense</h6>
                                                             <p>Gérer les recompense</p>                                                    
@@ -571,6 +570,8 @@
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                    </div>
+                                                    <div class="col-sm-6 col-md-4 col-lg-4 col-xl-4">
                                                         <div class="mb-4">
                                                             <h6><i class="tf-icons bx bx-rocket"></i> Bonus</h6>
                                                             <p>Gérer les bonus directs</p>                                                    
@@ -603,6 +604,23 @@
                                                                             <h6 class="mb-0">Seuil</h6>
                                                                             <small class="text-muted">Seuil à atteindre avant de reclamer</small>
                                                                             <input class="form-control" type="text" value="{{ \App\Utils\Utils::appSettings()->royalties_threshold }}" name="royalties_threshold" placeholder="Seuil">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-6 col-md-4 col-lg-4 col-xl-4">                                                       
+                                                        <div class="mb-4">
+                                                            <h6><i class="tf-icons bx bx-detail"></i> Valeurs</h6>
+                                                            <p>Les valeurs par défaut de l'application</p>                                                    
+                                                            <div class="alert alert-primary">
+                                                                <div class="d-flex mb-3">
+                                                                    <div class="flex-grow-1 row">
+                                                                        <div class="col mb-sm-0 mb-2">
+                                                                            <h6 class="mb-0">Message de bienvenue</h6>
+                                                                            <small class="text-muted">Message de bienvenue à afficher dans la barre du haut juste après <strong>Hello, {{ auth()->user()->name }}</strong></small>
+                                                                            <textarea class="form-control" placeholder="Ecrivez le message ici..." name="welcome" cols="30" rows="4">{{ \App\Utils\Utils::appSettings()->welcome }}</textarea>
                                                                         </div>
                                                                     </div>
                                                                 </div>

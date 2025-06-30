@@ -13,6 +13,9 @@
             <tr>
                 <td>
                     {{ $message->reference }}
+                    <div style="font-size:12px; margin-top: 10px;" class="text-muted">
+                        <span class="tf-icons bx bx-calendar"></span> {{ $message->created_at }}
+                    </div>
                 </td>
                 <td>
                     @if (!is_null($message->user))

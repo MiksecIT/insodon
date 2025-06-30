@@ -31,11 +31,89 @@
             @endphp
 
             <tr>
-                <td>{{ $fusion->reference }}</td>
+                <td>
+                    @if (!is_null($fusion->deleted_at) && auth()->user()->isRoot())
+                    <span class="badge bg-label-danger">supprimé</span>
+                    <br><br>
+                    @endif
+
+                    {{ $fusion->reference }}
+                    <div style="font-size:12px; margin-top: 10px;" class="text-muted">
+                        <span class="tf-icons bx bx-calendar"></span> {{ $fusion->created_at }}
+                    </div>
+                    @if (auth()->user()->isPartOfAdmin() && 1 == 2)
+                    @if (is_null($fusion->deleted_at) || auth()->user()->isRoot())
+                    <br><br>
+                    <button 
+                        title="Voir les portefeuilles"
+                        type="button" 
+                        class="btn btn-outline-danger"
+                        data-bs-toggle="modal"
+                        data-bs-target="#assocDeleModal{{ $fusion->reference.'_'.$view }}">
+                        <span class="tf-icons bx bx-trash"></span>
+                        @if (is_null($fusion->deleted_at))
+                        Supprimer
+                        @else 
+                            @if (auth()->user()->isRoot())
+                            Supprimer définitivement
+                            @endif
+                        @endif
+                    </button>
+                    
+                    <div class="modal fade" id="assocDeleModal{{ $fusion->reference.'_'.$view }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-scrollable" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalCenterTitle">
+                                    @if (is_null($fusion->deleted_at))
+                                    Suppression
+                                    @else 
+                                        @if (auth()->user()->isRoot())
+                                        Suppression définitivement
+                                        @endif
+                                    @endif
+                                </h5>
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col">
+                                        Voulez-vous vraiment supprimer 
+                                        @if (is_null($fusion->deleted_at))
+                                        
+                                        @else 
+                                            @if (auth()->user()->isRoot())
+                                            définitivement
+                                            @endif
+                                        @endif cette association ?                                        
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                    Fermer
+                                </button>
+                                <button onclick="$('#form-del{{ $fusion->reference }}').submit();" type="button" class="btn btn-primary">Oui, je confirme</button>
+                                <form id="form-del{{ $fusion->reference }}" action="{{ route('associations.destroy', $fusion->id) }}" method="POST">
+                                    @csrf
+                                    <input type="text" name="_method" value="DELETE" hidden>
+                                </form>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    @endif
+                    @endif
+                </td>
                 <td>
                     @if (!is_null($fusion->don))
                         <span class="badge bg-label-secondary">Don</span> <a href="{{ auth()->user()->hasDon($fusion->don) || auth()->user()->isPartOfAdmin() ? route('gifts.show', $fusion->don->reference) : '#!' }}"><strong>{{ "#".$fusion->don->reference }}</strong></a> <br><br>
-                        <span class="tf-icons bx bx-gift"></span> <span class="text-muted">&rarr;</span> <strong>@convert($fusion->don->amount)</strong> <span class="text-muted">XOF</span> @if (!is_null($fusion->don->amount_usd) && $fusion->don->amount_usd > 0) &bullet; <strong>@convert($fusion->don->amount_usd)</strong> <span class="pb-1 mb-4 text-muted">&dollar;</span> @endif
+                        <span class="tf-icons bx bx-gift"></span> <span class="text-muted">&rarr;</span> <strong>@convert($fusion->don->amount)</strong> <span class="text-muted">@if($fusion->don->is_usd) &dollar; @else XOF @endif</span>
                         
                         @if (auth()->user()->hasDon($fusion->don) || auth()->user()->isPartOfAdmin())
                             <br>
@@ -44,6 +122,10 @@
                                 @if($fusion->don->position == 'first')Premier @elseif($fusion->don->position == 'second')Deuxième @elseif($fusion->don->position == 'third')Troisième et dernier @endif don de la série @if($fusion->don->is_first) <a href="{{ route('gifts.series.details', $fusion->don->reference) }}"><strong>{{ "#".$fusion->don->reference }}</strong></a> @elseif(!is_null($fusion->don->parent)) <a href="{{ route('gifts.series.details', $fusion->don->parent->reference) }}"><strong>{{ "#".$fusion->don->parent->reference }}</strong></a> @endif
                             </span>
                         @endif
+
+                        <div style="font-size:12px; margin-top: 10px;" class="text-muted">
+                            <span class="tf-icons bx bx-calendar"></span> {{ $fusion->don->created_at }}
+                        </div>
                     @else
                         <span class="badge bg-label-secondary">introuvable</span>
                     @endif
@@ -51,11 +133,15 @@
                     @if (!is_null($fusion->reward))
                         <hr>
                         <span class="badge bg-label-secondary">recompense</span> <a href="{{ auth()->user()->hasReward($fusion->reward) || auth()->user()->isPartOfAdmin() ? route('rewards.show', $fusion->reward->reference) : "#!" }}"><strong>{{ "#".$fusion->reward->reference }}</strong></a> <br><br>
-                        <span class="tf-icons bx bx-box"></span> <span class="text-muted">&larr;</span> <strong>@convert($fusion->reward->amount)</strong> <span class="text-muted">XOF</span> 
+                        <span class="tf-icons bx bx-box"></span> <span class="text-muted">&larr;</span> <strong>@convert($fusion->reward->amount)</strong> <span class="text-muted">@if($fusion->reward->is_usd) &dollar; @else XOF @endif</span> 
                     
-                        @if (auth()->user()->hasReward($fusion->reward) || auth()->user()->isPartOfAdmin())
+                        {{-- @if (auth()->user()->hasReward($fusion->reward) || auth()->user()->isPartOfAdmin()) --}}
                             @if (!is_null($fusion->reward->remaining_amount) && $fusion->reward->remaining_amount > 0) &bullet; <strong>@convert($fusion->reward->remaining_amount)</strong> <span class="pb-1 mb-4 text-muted">restant</span> @endif
-                        @endif
+                        {{-- @endif --}}
+
+                        <div style="font-size:12px; margin-top: 10px;" class="text-muted">
+                            <span class="tf-icons bx bx-calendar"></span> {{ $fusion->reward->created_at }}
+                        </div>
 
                     @else
                         <span class="badge bg-label-secondary">introuvable</span>
@@ -97,16 +183,14 @@
                     <span class="text-muted">Reception: {{ $fusion->received_at }}</span>
                     @endif
                 </td>
-                <td><strong>@convert($fusion->amount)</strong> <span class="text-muted">FCFA</span></td>
+                <td><strong>@convert($fusion->amount)</strong> <span class="text-muted">@if($fusion->is_usd) &dollar; @else XOF @endif</span></td>
                 <td>
                     <span class="badge bg-label-{{ $fusion->isSent() ? 'primary' : 'secondary' }} me-1"><span class="tf-icons bx bx-check"></span> Envoyé</span> <br><br>
                     <span class="badge bg-label-{{ $fusion->isReceived() ? 'primary' : 'secondary' }} me-1"><span class="tf-icons bx bx-check"></span> Reçu</span> <br><br>
                     <span class="badge bg-label-{{ $fusion->isCompleted() ? 'success' : 'secondary'}} me-1"><span class="tf-icons bx bx-check"></span> Terminée</span>
                 </td>
                 <td>
-                    @if ($fusion->isCompleted() == false && !is_null($fusion->sender() && !is_null($fusion->receiver())))
-                        @if (auth()->user()->isPartOfAdmin() || auth()->user()->id == $fusion->sender()->id || auth()->user()->id == $fusion->receiver()->id)
-                    
+                    @if (is_null($fusion->deleted_at))
                     <button 
                         title="Voir les portefeuilles"
                         type="button" 
@@ -162,6 +246,9 @@
                         </div>
                     </div>
 
+                    @if ($fusion->isCompleted() == false && !is_null($fusion->sender() && !is_null($fusion->receiver())))
+                        @if (auth()->user()->isPartOfAdmin() || auth()->user()->id == $fusion->sender()->id || auth()->user()->id == $fusion->receiver()->id)
+                    
                     <button 
                         title="Confirmation"
                         type="button" 
@@ -197,13 +284,13 @@
                                             @if ($fusion->isSent() && $fusion->isReceived() == false)
                                         En attente de confirmation de reception de la part de {{ $fusion->receiver()->name }}
                                             @else
-                                        Vous confirmez avoir envoyé la somme de <strong>@convert($fusion->amount)</strong> <span class="text-muted">FCFA</span> à {{ $fusion->receiver()->name }} ?
+                                        Vous confirmez avoir envoyé la somme de <strong>@convert($fusion->amount)</strong> <span class="text-muted">@if($fusion->is_usd) &dollar; @else XOF @endif</span> à {{ $fusion->receiver()->name }} ?
                                             @endif
                                         @elseif(auth()->user()->id == $fusion->receiver()->id)
                                             @if ($fusion->isSent() == false && $fusion->isReceived() == false)
                                         En attente de confirmation d'envoi de la part de {{ $fusion->sender()->name }}
                                             @else
-                                        Vous confirmez avoir reçu la somme de <strong>@convert($fusion->amount)</strong> <span class="text-muted">FCFA</span> de la part de {{ $fusion->sender()->name }} ?
+                                        Vous confirmez avoir reçu la somme de <strong>@convert($fusion->amount)</strong> <span class="text-muted">@if($fusion->is_usd) &dollar; @else XOF @endif</span> de la part de {{ $fusion->sender()->name }} ?
                                             @endif
                                         @elseif (auth()->user()->isPartOfAdmin())
                                             @if ($fusion->isSent() && $fusion->isReceived() == false)
@@ -261,8 +348,7 @@
                     </div>
 
                         @endif
-                    @else
-                    <span class="badge bg-label-secondary me-1">aucune</span>
+                    @endif
                     @endif
                 </td>
             </tr>

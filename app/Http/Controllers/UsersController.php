@@ -19,6 +19,11 @@ class UsersController extends Controller
      */
     public function index()
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         $users = [];
         if (auth()->user()->isPartOfAdmin()) {
             $users = User::all();
@@ -36,6 +41,11 @@ class UsersController extends Controller
      */
     public function create()
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (auth()->user()->isTopManager()) {
             $countries = \App\Models\Country::where('is_available', 1)->get();
             $roles = \App\Models\Role::all();
@@ -49,6 +59,11 @@ class UsersController extends Controller
      */
     public function store(Request $request)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (auth()->user()->isTopManager()) {
             if ($request->has('lastname') && $request->has('firstname') && $request->has('email') && $request->has('country') && $request->has('role')) {
                 
@@ -102,6 +117,11 @@ class UsersController extends Controller
      */
     public function show(string $reference)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         $user = User::where('reference', $reference)->first();
         abort_unless(!is_null($user), 404);
         if (auth()->user()->hasAffiliate($user) || auth()->user()->id == $user->id || auth()->user()->isPartOfAdmin()) {
@@ -125,6 +145,11 @@ class UsersController extends Controller
      */
     public function toggleBlock (Request $request)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort_unless(\App\Utils\Utils::appSettings()->enable_suspension, 404);
         abort_unless(auth()->user()->isTopManager(), 403);
 
@@ -164,6 +189,11 @@ class UsersController extends Controller
      */
     public function edit(string $reference)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         $user = User::where('reference', $reference)->first();
         abort_unless(!is_null($user), 404);
         
@@ -187,6 +217,11 @@ class UsersController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort_unless(auth()->user()->isPartOfAdmin(), 404);
 
         $user = User::find($id);
@@ -397,6 +432,11 @@ class UsersController extends Controller
      */
     public function destroy(string $id)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+        
         if (auth()->user()->isTopManager()) {
             
         }

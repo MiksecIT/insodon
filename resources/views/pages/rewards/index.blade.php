@@ -37,7 +37,7 @@
 
                             @if (auth()->user()->isPartOfAdmin())
                                 @php
-                                    $all = \App\Models\Reward::all();
+                                    $all = auth()->user()->isRoot() ? \App\Models\Reward::withTrashed()->get() : \App\Models\Reward::all();
                                     $pending = [];
                                     foreach ($all as $p) {
                                         if ($p->isReady() && $p->isFusioned() == false) {

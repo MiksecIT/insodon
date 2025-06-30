@@ -22,19 +22,25 @@
                     <span class="badge rounded-pill bg-label-@if($don->position == 'first')danger @elseif($don->position == 'second')warning @elseif($don->position == 'third')success @endif">{{ ucfirst($don->position) }}</span>
                     
                     <br>
-                    <span class="tf-icons bx bx-gift"></span> <span class="text-muted">&rarr;</span> <strong>@convert($don->amount)</strong> <span class="text-muted">XOF</span> 
-                    @if (!is_null($don->amount_usd))
-                    &bullet; <strong>@convert($don->amount_usd)</strong> <span class="pb-1 mb-4 text-muted">&dollar;</span>
-                    @endif
+                    <span class="tf-icons bx bx-gift"></span> 
+                    <span class="text-muted">&rarr;</span> 
+                    <strong>@convert($don->amount)</strong> 
+                    <span class="text-muted">@if($don->is_usd) &dollar; @else XOF @endif</span> 
+                    
                     <br><br>
                     <span class="text-muted" style="font-size: 13px;">
                         @if($don->position == 'first')Premier @elseif($don->position == 'second')Deuxième @elseif($don->position == 'third')Troisième et dernier @endif don de la série @if($don->is_first) <a href="{{ route('gifts.series.details', $don->reference) }}"><strong>{{ "#".$don->reference }}</strong></a> @elseif(!is_null($don->parent)) <a href="{{ route('gifts.series.details', $don->parent->reference) }}"><strong>{{ "#".$don->parent->reference }}</strong></a> @endif
                     </span>
+                    <br>
+                    <span class="tf-icons bx bx-calendar"></span> {{ $don->created_at }}
                 </td>
                 <td>
                     @if (!is_null($don->user))
                     <a href="{{ route('users.show', $don->user->reference) }}" style="color: inherit !important;">
-                        <span style="display: inline-block;"><img style="height: 30px; width:30px; margin-right:2px;" src="{{Vite::asset('resources/assets/img/avatars/default.png')}}" alt="Avatar" class="rounded-circle" />{{$reward->user->name}} </span>
+                        <span style="display: inline-block;">
+                            <img style="height: 30px; width:30px; margin-right:2px;" src="{{Vite::asset('resources/assets/img/avatars/default.png')}}" alt="Avatar" class="rounded-circle" />
+                            {{$don->user->name}} 
+                        </span>
                         @if (!is_null($don->user->country))
                             @if (!is_null($don->user->country->shortern))
                         <img title="Côte d'ivoire" style="height: 15px; width:15px;" alt="ci" src="{{ Vite::asset('resources/assets/img/countries/'.$reward->user->country->shortern.'_flag.png') }}">
@@ -48,14 +54,14 @@
                     @endif
                 </td>
                 
-                <td><strong>@convert($don->remaining_amount)</strong> <span class="text-muted">FCFA</span></td>
+                <td><strong>@convert($don->remaining_amount)</strong> <span class="text-muted">@if($don->is_usd) &dollar; @else XOF @endif</span></td>
                 <td>
                     
                     <span class="badge bg-label-{{ $don->isFusioned() ? 'success' : 'secondary' }} me-1"><span class="tf-icons bx bx-link"></span> associé</span> <br><br>
                     <span class="badge bg-label-{{ $don->isCompleted() ? 'success' : 'secondary' }} me-1"><span class="tf-icons bx bx-check"></span> envoyé {{ count($don->fusionsCompleted()) }}/{{ count($don->fusions) }}</span>
                 </td>
                 <td>
-                    
+                    @if(is_null($don->deleted_at))
                     <a href="#!" 
                     type="button" 
                     class="btn rounded-pill btn-icon btn-primary"
@@ -110,8 +116,8 @@
                                                     <div class="row">
                                                         <div class="col-sm-6">
                                                             <span class="text-muted">Détails don</span><br>
-                                                            <strong>Montant: </strong> @convert($don->amount) <span class="text-muted">FCFA</span><br>
-                                                            <strong>Montant restant: </strong> @convert($don->remaining_amount) <span class="text-muted">FCFA</span><br>
+                                                            <strong>Montant: </strong> @convert($don->amount) <span class="text-muted">@if($don->is_usd) &dollar; @else XOF @endif</span><br>
+                                                            <strong>Montant restant: </strong> @convert($don->remaining_amount) <span class="text-muted">@if($don->is_usd) &dollar; @else XOF @endif</span><br>
                                                             <strong>Status:</strong> 
                                                             <span class="badge bg-label-{{ $don->isCompleted() ? 'success' : 'secondary'}}">
                                                                 @if($don->isCompleted()) terminé @else en cours @endif
@@ -121,8 +127,8 @@
                                                         </div>
                                                         <div class="col-sm-6">
                                                             <span class="text-muted">Détails recompense</span><br>
-                                                            <strong>Montant: </strong> @convert($reward->amount) <span class="text-muted">FCFA</span><br>
-                                                            <strong>Montant restant: </strong> @convert($reward->remaining_amount) <span class="text-muted">FCFA</span><br>
+                                                            <strong>Montant: </strong> @convert($reward->amount) <span class="text-muted">@if($reward->is_usd) &dollar; @else XOF @endif</span><br>
+                                                            <strong>Montant restant: </strong> @convert($reward->remaining_amount) <span class="text-muted">@if($reward->is_usd) &dollar; @else XOF @endif</span><br>
                                                             <strong>Status:</strong> 
                                                             <span class="badge bg-label-{{ $reward->isCompleted() ? 'success' : 'secondary'}}">
                                                                 @if($reward->isCompleted()) terminé @else en cours @endif
@@ -154,7 +160,7 @@
                     <a href="{{ route('gifts.show', $don->reference) }}" type="button" class="btn rounded-pill btn-icon btn-outline-primary">
                         <span class="tf-icons bx bx-detail"></span>
                     </a>
-
+                    @endif
                 </td>
             </tr>
             @endforeach

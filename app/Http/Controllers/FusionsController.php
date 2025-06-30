@@ -17,6 +17,11 @@ class FusionsController extends Controller
      */
     public function index()
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         $fusions = [];
         if (auth()->user()->isPartOfAdmin()) {
             $fusions = Fusion::all();
@@ -37,6 +42,11 @@ class FusionsController extends Controller
      */
     public function create()
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (auth()->user()->isTopManager()) {
             return view('pages.fusions.create');
         }
@@ -51,6 +61,11 @@ class FusionsController extends Controller
      */
     public function confirm (Request $request)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if ($request->has('ack') && $request->has('r')) {
             if (
                 is_null(\App\Utils\Utils::appSettings()->reward_don_factor) && 
@@ -75,18 +90,18 @@ class FusionsController extends Controller
                 return \Redirect::back();
             }
 
-            if ($fusion->don->isCompleted() || $fusion->reward->isCompleted()) {
-                alert()->error("Erreur", "Le don ou la recompense a déjà été éffectué(e)")->persistent();
-                return \Redirect::back();
-            }
-
-            if ($fusion->don->isFusioned() || $fusion->reward->isFusioned()) {
-                alert()->error("Erreur", "Le don ou la recompense a déjà été complètement fusioné(e)")->persistent();
+            if ($fusion->isCompleted()) {
+                alert()->error("Erreur", "Cette association a déjà été envoyée et reçue.")->persistent();
                 return \Redirect::back();
             }
 
             if (is_null($fusion->don->pack) ) {
                 alert()->error("Erreur", "Impossible de trouver le pack associé.")->persistent();
+                return \Redirect::back();
+            }
+
+            if (is_null($fusion->don->pack->amount) || is_null($fusion->don->pack->amount) || $fusion->don->pack->amount == "" || $fusion->don->pack->amount_usd == "") {
+                alert()->error("Erreur", "Le montant du pack associé n'est pas correcte.")->persistent();
                 return \Redirect::back();
             }
 
@@ -97,11 +112,6 @@ class FusionsController extends Controller
 
             if ($fusion->don->user->id == $fusion->reward->user->id) {
                 alert()->error("Erreur", "L'expéditeur et le destinataire sont identiques.")->persistent();
-                return \Redirect::back();
-            }
-
-            if ($fusion->don->pack->amount != $fusion->don->amount) {
-                alert()->error("Erreur", "Impossible de trouver le montant du pack associé.")->persistent();
                 return \Redirect::back();
             }
 
@@ -165,14 +175,32 @@ class FusionsController extends Controller
                     if (count($existingReward) == 0) {
                         $reward = Reward::create([
                             "reference" => \App\Utils\Utils::generateReference(Reward::all(), \App\Utils\Utils::fakeToken(20), 1),
-                            "don_id" => $fusion->don->id, 
+                            "don_id" => $fusion->don->id,
+                            "is_usd" => $fusion->don->is_usd == 1 ? 1 : 0, 
                             "source" => "don",
                             "user_id" => $fusion->don->user->id,
                             "status" => "pending_fusion",
-                            "amount" => $fusion->don->isFirst() ? $fusion->don->pack->amount : \App\Utils\Utils::appSettings()->reward_don_factor * $fusion->don->pack->amount,
                             "created_at" => now(),
                             "updated_at" => now(),
                         ]);
+                        # Amount
+                        if ($reward->is_usd) {
+                            if ($fusion->don->isFirst()) {
+                                $reward->amount = $fusion->don->pack->amount_usd;
+                                $reward->save();
+                            } else {
+                                $reward->amount = \App\Utils\Utils::appSettings()->reward_don_factor * $fusion->don->pack->amount_usd;
+                                $reward->save();
+                            }
+                        } else {
+                            if ($fusion->don->isFirst()) {
+                                $reward->amount = $fusion->don->pack->amount;
+                                $reward->save();
+                            } else {
+                                $reward->amount = \App\Utils\Utils::appSettings()->reward_don_factor * $fusion->don->pack->amount;
+                                $reward->save();
+                            }
+                        }
                     }                    
                 }
 
@@ -189,21 +217,22 @@ class FusionsController extends Controller
                             # Make sure current has a parent
                             if (!is_null($fusion->reward->user->parent)) {
                                 $royalty = \App\Models\Royalty::create([
-                                    "reference" => \App\Utils\Utils::generateReference(Royalty::all(), \App\Utils\Utils::fakeToken(20), 1),
+                                    "reference" => \App\Utils\Utils::generateReference(\App\Models\Royalty::all(), \App\Utils\Utils::fakeToken(20), 1),
                                     "reward_id" => $fusion->reward->id, 
                                     "target" => $fusion->reward->user->parent->id,
                                     "user_id" => $fusion->reward->user->id,
-                                    "value" => \App\Utils\Utils::appSettings()->royalties_percent * $fusion->reward->amount / 100,
+                                    "is_usd" => $fusion->reward->is_usd == 1 ? 1 : 0,
+                                    "value" => intval(round(\App\Utils\Utils::appSettings()->royalties_percent * $fusion->reward->amount / 100, 0, PHP_ROUND_HALF_UP)),
                                     "created_at" => now(),
                                     "updated_at" => now(),
                                 ]);
                             }
                         }
-                    }
-                    
-                    # Updating related royalties that are valid and waiting payment
-                    if ($fusion->reward->source == "bonus" && $fusion->reward->isInitiale() == false) {
-                        $fusion->reward->completeRoyalties();
+
+                        # Updating related royalties that are valid and waiting payment
+                        if ($fusion->reward->source == "bonus" && $fusion->reward->isInitiale() == false) {
+                            $fusion->reward->completeRoyalties();
+                        }
                     }
                 }
 
@@ -212,10 +241,9 @@ class FusionsController extends Controller
             }
             # Unknown
             else {
-                alert()->error("Erreur", "Impossible de continuer, type et status de la transaction inconnue")->persistent();
+                alert()->error("Erreur", "Impossible de confirmer, veuillez contacter les administrateurs si cela persiste.")->persistent();
                 return \Redirect::back();
-            }            
-
+            } 
         } else {
             alert()->error("Erreur", "Un ou plusieurs champs manquants dans la requête.")->persistent();
             return \Redirect::back();
@@ -227,6 +255,11 @@ class FusionsController extends Controller
      */
     public function createFromDonButRewardFirst(Request $request)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (auth()->user()->isTopManager()) {
             if ($request->has('ack') && $request->has('rec')) {
                 $don = Don::where('reference', $request->ack)->first();
@@ -277,7 +310,7 @@ class FusionsController extends Controller
                         "don_id" => null, 
                         "source" => "don",
                         "user_id" => $receiver->id,
-                        "amount" => $don->pack->amount,
+                        "amount" => $don->is_usd ? $don->pack->amount_usd : $don->pack->amount,
                         "status" => "pending_fusion",
                         "created_at" => \Carbon\Carbon::parse(now())->subDays(\App\Utils\Utils::appSettings()->reward_don_delay + 1),
                         "updated_at" => now(),
@@ -319,6 +352,11 @@ class FusionsController extends Controller
      */
     public function createFromDon($reference)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (auth()->user()->isTopManager()) {
             $don = Don::where("reference", $reference)->first();
             abort_unless (!is_null($don), 404);
@@ -360,49 +398,51 @@ class FusionsController extends Controller
             $suggested = [];
             
             foreach ($rewards as $reward) {
-                if (!is_null($reward->user)) {
-                    if ($reward->isReady() && $reward->isFusioned() == false && $reward->isCompleted() == false) {
-                        if ($don->user->country_id == $reward->user->country_id) {
-                            # Newly created don
-                            if ($don->remaining_amount == 0 || !is_null($don->remaining_amount)) {
-                                # New created reward
-                                if ($reward->remaining_amount == 0 || !is_null($reward->remaining_amount)) {                                    
-                                    if ($don->amount >= $reward->amount) {
-                                        array_push($suggested, $reward);
-                                    } else {
-                                        array_push($country, $reward);
+                if (!is_null($reward->user) && $don->is_usd == $reward->is_usd) {
+                    if ($don->user_id != $reward->user_id) {
+                        if ($reward->isReady() && $reward->isFusioned() == false && $reward->isCompleted() == false) {
+                            if ($don->user->country_id == $reward->user->country_id) {
+                                # Newly created don
+                                if ($don->remaining_amount == 0 || !is_null($don->remaining_amount)) {
+                                    # New created reward
+                                    if ($reward->remaining_amount == 0 || !is_null($reward->remaining_amount)) {                                    
+                                        if ($don->amount >= $reward->amount) {
+                                            array_push($suggested, $reward);
+                                        } else {
+                                            array_push($country, $reward);
+                                        }
                                     }
-                                }
-                                # Old rewards with remaining amount to be received
+                                    # Old rewards with remaining amount to be received
+                                    else {
+                                        if ($don->amount >= $reward->remaining_amount) {
+                                            array_push($suggested, $reward);
+                                        } else {
+                                            array_push($country, $reward);
+                                        }
+                                    }
+                                } 
+                                # Old don with remaining amount to be given
                                 else {
-                                    if ($don->amount >= $reward->remaining_amount) {
-                                        array_push($suggested, $reward);
-                                    } else {
-                                        array_push($country, $reward);
+                                    # New created reward
+                                    if ($reward->remaining_amount == 0 || !is_null($reward->remaining_amount)) {                                    
+                                        if ($don->remaining_amount >= $reward->amount) {
+                                            array_push($suggested, $reward);
+                                        } else {
+                                            array_push($country, $reward);
+                                        }
+                                    }
+                                    # Old rewards with remaining amount to be received
+                                    else {
+                                        if ($don->remaining_amount >= $reward->remaining_amount) {
+                                            array_push($suggested, $reward);
+                                        } else {
+                                            array_push($country, $reward);
+                                        }
                                     }
                                 }
-                            } 
-                            # Old don with remaining amount to be given
-                            else {
-                                # New created reward
-                                if ($reward->remaining_amount == 0 || !is_null($reward->remaining_amount)) {                                    
-                                    if ($don->remaining_amount >= $reward->amount) {
-                                        array_push($suggested, $reward);
-                                    } else {
-                                        array_push($country, $reward);
-                                    }
-                                }
-                                # Old rewards with remaining amount to be received
-                                else {
-                                    if ($don->remaining_amount >= $reward->remaining_amount) {
-                                        array_push($suggested, $reward);
-                                    } else {
-                                        array_push($country, $reward);
-                                    }
-                                }
+                            } else {
+                                array_push($countries, $reward);
                             }
-                        } else {
-                            array_push($countries, $reward);
                         }
                     }
                 }
@@ -415,413 +455,15 @@ class FusionsController extends Controller
     }
 
     /**
-     * Store Association
-     *
-     * @param Request $request
-     * @return void
-     */
-    public function storeAssociation (Request $request)
-    {
-        abort_unless(auth()->user()->isTopManager(), 403);
-
-        if ($request->has("d") && $request->has("r")) {
-
-            $don = Don::where('reference', $request->d)->first();
-            $reward = Reward::where('reference', $request->r)->first();
-
-            if (is_null($don) || is_null($reward)) {
-                alert()->error("Introuvable", "Le don ou la recompense est introuvable")->persistent();
-                return redirect()->back();
-            }
-            
-            if (is_null($don->user) || is_null($reward->user)) {
-                alert()->error("Introuvable", "Le donateur ou le bénéficaire est introuvable")->persistent();
-                return redirect()->back();
-            }
-
-            if ($don->user->id == $reward->user->id) {
-                alert()->error("Erreur", "Correspondants identiques")->persistent();
-                return redirect()->back();
-            }
-
-            if ($reward->isReady() == false) {
-                alert()->error("Erreur", "La recompense n'est pas encore mature.")->persistent();
-                return redirect()->back();
-            }
-
-            if ($don->isFusioned() || $reward->isFusioned()) {
-                alert()->error("Erreur", "Le don ou la recompense est déjà totalement associé")->persistent();
-                return redirect()->back();
-            }
-
-            if ($don->isCompleted() || $reward->isCompleted()) {
-                alert()->error("Erreur", "Le don ou la recompense est déjà totalement associé")->persistent();
-                return redirect()->back();
-            }
-
-            # Creating fusion
-            # Newly created don
-            if (is_null($don->remaining_amount) || $don->remaining_amount == 0) {
-                # New created reward
-                if ($reward->remaining_amount == 0 || !is_null($reward->remaining_amount)) { 
-                    # Don amount equals reward amount                                   
-                    if ($don->amount == $reward->amount) {
-                        $fusion = Fusion::create([
-                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
-                            "don_id" => $don->id,
-                            "reward_id" => $reward->id,
-                            "sender" => $don->user->id, 
-                            "receiver" => $reward->user->id,
-                            "amount" => $don->amount, 
-                            "source" => $reward->source,
-                            "user_id" => auth()->user()->id,
-                            "status" => "pending_sender",
-                            "status_comment" => "Fusion initiated",
-                            "created_at" => now(),
-                            "updated_at" => now(),
-                        ]);
-
-                        # Updating don
-                        $don->remaining_amount = $don->amount - $fusion->amount;
-                        $don->save();
-                        # Updating reward
-                        $reward->remaining_amount = $reward->amount - $fusion->amount;
-                        $reward->save();
-                        # Returning to don details
-                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." FCFA entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
-                        return redirect()->route("gifts.show", $don->reference);
-                    }
-                    # Don amount greater than reward amount                                   
-                    if ($don->amount > $reward->amount) {
-                        $fusion = Fusion::create([
-                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
-                            "don_id" => $don->id,
-                            "reward_id" => $reward->id,
-                            "sender" => $don->user->id, 
-                            "receiver" => $reward->user->id,
-                            "amount" => $reward->amount, 
-                            "source" => $reward->source,
-                            "user_id" => auth()->user()->id,
-                            "status" => "pending_sender",
-                            "status_comment" => "Fusion initiated",
-                            "created_at" => now(),
-                            "updated_at" => now(),
-                        ]);
-
-                        # Updating don
-                        $don->remaining_amount = $don->amount - $fusion->amount;
-                        $don->save();
-                        # Updating reward
-                        $reward->remaining_amount = $reward->amount - $fusion->amount;
-                        $reward->save();
-                        # Returning to don details
-                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." FCFA entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
-                        return redirect()->route("gifts.show", $don->reference);
-                    }
-                    # Don amount smaller than reward amount                                   
-                    if ($don->amount < $reward->amount) {
-                        $fusion = Fusion::create([
-                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
-                            "don_id" => $don->id,
-                            "reward_id" => $reward->id,
-                            "sender" => $don->user->id, 
-                            "receiver" => $reward->user->id,
-                            "amount" => $don->amount, 
-                            "source" => $reward->source,
-                            "user_id" => auth()->user()->id,
-                            "status" => "pending_sender",
-                            "status_comment" => "Fusion initiated",
-                            "created_at" => now(),
-                            "updated_at" => now(),
-                        ]);
-
-                        # Updating don
-                        $don->remaining_amount = $don->amount - $fusion->amount;
-                        $don->save();
-                        # Updating reward
-                        $reward->remaining_amount = $reward->amount - $fusion->amount;
-                        $reward->save();
-                        # Returning to don details
-                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." FCFA entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
-                        return redirect()->route("gifts.show", $don->reference);
-                    }                    
-                }
-                # Old rewards with remaining amount to be received
-                elseif ($reward->remaining_amount > 0) {
-                    # Don amount equals reward remaining amount                                   
-                    if ($don->amount == $reward->remaining_amount) {
-                        $fusion = Fusion::create([
-                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
-                            "don_id" => $don->id,
-                            "reward_id" => $reward->id,
-                            "sender" => $don->user->id, 
-                            "receiver" => $reward->user->id,
-                            "amount" => $don->amount, 
-                            "source" => $reward->source,
-                            "user_id" => auth()->user()->id,
-                            "status" => "pending_sender",
-                            "status_comment" => "Fusion initiated",
-                            "created_at" => now(),
-                            "updated_at" => now(),
-                        ]);
-
-                        # Updating don
-                        $don->remaining_amount = $don->amount - $fusion->amount;
-                        $don->save();
-                        # Updating reward
-                        $reward->remaining_amount = $reward->remaining_amount - $fusion->amount;
-                        $reward->save();
-                        # Returning to don details
-                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." FCFA entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
-                        return redirect()->route("gifts.show", $don->reference);
-                    }
-                    # Don amount greater than reward remaining amount                                   
-                    if ($don->amount > $reward->remaining_amount) {
-                        $fusion = Fusion::create([
-                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
-                            "don_id" => $don->id,
-                            "reward_id" => $reward->id,
-                            "sender" => $don->user->id, 
-                            "receiver" => $reward->user->id,
-                            "amount" => $reward->remaining_amount, 
-                            "source" => $reward->source,
-                            "user_id" => auth()->user()->id,
-                            "status" => "pending_sender",
-                            "status_comment" => "Fusion initiated",
-                            "created_at" => now(),
-                            "updated_at" => now(),
-                        ]);
-
-                        # Updating don
-                        $don->remaining_amount = $don->amount - $fusion->amount;
-                        $don->save();
-                        # Updating reward
-                        $reward->remaining_amount = $reward->remaining_amount - $fusion->amount;
-                        $reward->save();
-                        # Returning to don details
-                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." FCFA entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
-                        return redirect()->route("gifts.show", $don->reference);
-                    }
-                    # Don amount smaller than reward remaining amount                                   
-                    if ($don->amount < $reward->remaining_amount) {
-                        $fusion = Fusion::create([
-                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
-                            "don_id" => $don->id,
-                            "reward_id" => $reward->id,
-                            "sender" => $don->user->id, 
-                            "receiver" => $reward->user->id,
-                            "amount" => $don->amount, 
-                            "source" => $reward->source,
-                            "user_id" => auth()->user()->id,
-                            "status" => "pending_sender",
-                            "status_comment" => "Fusion initiated",
-                            "created_at" => now(),
-                            "updated_at" => now(),
-                        ]);
-
-                        # Updating don
-                        $don->remaining_amount = $don->amount - $fusion->amount;
-                        $don->save();
-                        # Updating reward
-                        $reward->remaining_amount = $reward->remaining_amount - $fusion->amount;
-                        $reward->save();
-                        # Returning to don details
-                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." FCFA entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
-                        return redirect()->route("gifts.show", $don->reference);
-                    }
-                } 
-                # Invalid value for reward remaining amount
-                alert()->error("Erreur", "La valeur du montant restant de la recompense est invalide")->persistent();
-                return redirect()->back();
-            }
-            # Old don with remaining amount 
-            elseif ($don->remaining_amount > 0) {
-                # New created reward
-                if ($reward->remaining_amount == 0 || !is_null($reward->remaining_amount)) { 
-                    # Don remaining amount equals reward amount                                   
-                    if ($don->remaining_amount == $reward->amount) {
-                        $fusion = Fusion::create([
-                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
-                            "don_id" => $don->id,
-                            "reward_id" => $reward->id,
-                            "sender" => $don->user->id, 
-                            "receiver" => $reward->user->id,
-                            "amount" => $don->remaining_amount, 
-                            "source" => $reward->source,
-                            "user_id" => auth()->user()->id,
-                            "status" => "pending_sender",
-                            "status_comment" => "Fusion initiated",
-                            "created_at" => now(),
-                            "updated_at" => now(),
-                        ]);
-
-                        # Updating don
-                        $don->remaining_amount = $don->remaining_amount - $fusion->amount;
-                        $don->save();
-                        # Updating reward
-                        $reward->remaining_amount = $reward->amount - $fusion->amount;
-                        $reward->save();
-                        # Returning to don details
-                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." FCFA entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
-                        return redirect()->route("gifts.show", $don->reference);
-                    }
-                    # Don remaining amount greater than reward amount                                   
-                    if ($don->remaining_amount > $reward->amount) {
-                        $fusion = Fusion::create([
-                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
-                            "don_id" => $don->id,
-                            "reward_id" => $reward->id,
-                            "sender" => $don->user->id, 
-                            "receiver" => $reward->user->id,
-                            "amount" => $reward->amount, 
-                            "source" => $reward->source,
-                            "user_id" => auth()->user()->id,
-                            "status" => "pending_sender",
-                            "status_comment" => "Fusion initiated",
-                            "created_at" => now(),
-                            "updated_at" => now(),
-                        ]);
-
-                        # Updating don
-                        $don->remaining_amount = $don->remaining_amount - $fusion->amount;
-                        $don->save();
-                        # Updating reward
-                        $reward->remaining_amount = $reward->amount - $fusion->amount;
-                        $reward->save();
-                        # Returning to don details
-                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." FCFA entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
-                        return redirect()->route("gifts.show", $don->reference);
-                    }
-                    # Don remaining amount smaller than reward amount                                   
-                    if ($don->remaining_amount < $reward->amount) {
-                        $fusion = Fusion::create([
-                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
-                            "don_id" => $don->id,
-                            "reward_id" => $reward->id,
-                            "sender" => $don->user->id, 
-                            "receiver" => $reward->user->id,
-                            "amount" => $don->remaining_amount, 
-                            "source" => $reward->source,
-                            "user_id" => auth()->user()->id,
-                            "status" => "pending_sender",
-                            "status_comment" => "Fusion initiated",
-                            "created_at" => now(),
-                            "updated_at" => now(),
-                        ]);
-
-                        # Updating don
-                        $don->remaining_amount = $don->remaining_amount - $fusion->amount;
-                        $don->save();
-                        # Updating reward
-                        $reward->remaining_amount = $reward->amount - $fusion->amount;
-                        $reward->save();
-                        # Returning to don details
-                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." FCFA entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
-                        return redirect()->route("gifts.show", $don->reference);
-                    }                    
-                }
-                # Old rewards with remaining amount to be received
-                elseif ($reward->remaining_amount > 0) {
-                    # Don remaining amount equals reward remaining amount                                   
-                    if ($don->remaining_amount == $reward->remaining_amount) {
-                        $fusion = Fusion::create([
-                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
-                            "don_id" => $don->id,
-                            "reward_id" => $reward->id,
-                            "sender" => $don->user->id, 
-                            "receiver" => $reward->user->id,
-                            "amount" => $don->remaining_amount, 
-                            "source" => $reward->source,
-                            "user_id" => auth()->user()->id,
-                            "status" => "pending_sender",
-                            "status_comment" => "Fusion initiated",
-                            "created_at" => now(),
-                            "updated_at" => now(),
-                        ]);
-
-                        # Updating don
-                        $don->remaining_amount = $don->remaining_amount - $fusion->amount;
-                        $don->save();
-                        # Updating reward
-                        $reward->remaining_amount = $reward->remaining_amount - $fusion->amount;
-                        $reward->save();
-                        # Returning to don details
-                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." FCFA entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
-                        return redirect()->route("gifts.show", $don->reference);
-                    }
-                    # Don remaining amount greater than reward remaining amount                                   
-                    if ($don->remaining_amount > $reward->remaining_amount) {
-                        $fusion = Fusion::create([
-                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
-                            "don_id" => $don->id,
-                            "reward_id" => $reward->id,
-                            "sender" => $don->user->id, 
-                            "receiver" => $reward->user->id,
-                            "amount" => $reward->remaining_amount, 
-                            "source" => $reward->source,
-                            "user_id" => auth()->user()->id,
-                            "status" => "pending_sender",
-                            "status_comment" => "Fusion initiated",
-                            "created_at" => now(),
-                            "updated_at" => now(),
-                        ]);
-
-                        # Updating don
-                        $don->remaining_amount = $don->remaining_amount - $fusion->amount;
-                        $don->save();
-                        # Updating reward
-                        $reward->remaining_amount = $reward->remaining_amount - $fusion->amount;
-                        $reward->save();
-                        # Returning to don details
-                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." FCFA entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
-                        return redirect()->route("gifts.show", $don->reference);
-                    }
-                    # Don remaining amount smaller than reward remaining amount                                   
-                    if ($don->remaining_amount < $reward->remaining_amount) {
-                        $fusion = Fusion::create([
-                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
-                            "don_id" => $don->id,
-                            "reward_id" => $reward->id,
-                            "sender" => $don->user->id, 
-                            "receiver" => $reward->user->id,
-                            "amount" => $don->remaining_amount, 
-                            "source" => $reward->source,
-                            "user_id" => auth()->user()->id,
-                            "status" => "pending_sender",
-                            "status_comment" => "Fusion initiated",
-                            "created_at" => now(),
-                            "updated_at" => now(),
-                        ]);
-
-                        # Updating don
-                        $don->remaining_amount = $don->remaining_amount - $fusion->amount;
-                        $don->save();
-                        # Updating reward
-                        $reward->remaining_amount = $reward->remaining_amount - $fusion->amount;
-                        $reward->save();
-                        # Returning to don details
-                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." FCFA entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
-                        return redirect()->route("gifts.show", $don->reference);
-                    }
-                } 
-                # Invalid value for reward remaining amount
-                alert()->error("Erreur", "La valeur du montant restant de la recompense est invalide")->persistent();
-                return redirect()->back();
-            }
-            # Invalid value for don remaining amount
-            alert()->error("Erreur", "La valeur du montant restant du don est invalide")->persistent();
-            return redirect()->back();
-        } else {
-            alert()->error("Erreur", "Un ou plusieurs champs manquants")->persistent();
-            return redirect()->back();
-        }
-    }
-    
-    /**
      * Show the form for creating a new resource.
      */
     public function createFromReward($reference)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (auth()->user()->isTopManager()) {
             $reward = Reward::where("reference", $reference)->first();
             abort_unless (!is_null($reward), 404);
@@ -858,49 +500,51 @@ class FusionsController extends Controller
             $suggested = [];
             
             foreach ($dons as $don) {
-                if (!is_null($don->user)) {
-                    if ($don->isFusioned() == false && $don->isCompleted() == false) {
-                        if ($don->user->country_id == $reward->user->country_id) {
-                            # Newly created don
-                            if ($don->remaining_amount == 0 || !is_null($don->remaining_amount)) {
-                                # New created reward
-                                if ($reward->remaining_amount == 0 || !is_null($reward->remaining_amount)) {                                    
-                                    if ($don->amount >= $reward->amount) {
-                                        array_push($suggested, $don);
-                                    } else {
-                                        array_push($country, $don);
+                if (!is_null($don->user) && $don->is_usd == $reward->is_usd) {
+                    if ($don->user_id != $reward->user_id) {
+                        if ($don->isFusioned() == false && $don->isCompleted() == false) {
+                            if ($don->user->country_id == $reward->user->country_id) {
+                                # Newly created don
+                                if ($don->remaining_amount == 0 || !is_null($don->remaining_amount)) {
+                                    # New created reward
+                                    if ($reward->remaining_amount == 0 || !is_null($reward->remaining_amount)) {                                    
+                                        if ($don->amount >= $reward->amount) {
+                                            array_push($suggested, $don);
+                                        } else {
+                                            array_push($country, $don);
+                                        }
                                     }
-                                }
-                                # Old rewards with remaining amount to be received
+                                    # Old rewards with remaining amount to be received
+                                    else {
+                                        if ($don->amount >= $reward->remaining_amount) {
+                                            array_push($suggested, $don);
+                                        } else {
+                                            array_push($country, $don);
+                                        }
+                                    }
+                                } 
+                                # Old don with remaining amount to be given
                                 else {
-                                    if ($don->amount >= $reward->remaining_amount) {
-                                        array_push($suggested, $don);
-                                    } else {
-                                        array_push($country, $don);
+                                    # New created reward
+                                    if ($reward->remaining_amount == 0 || !is_null($reward->remaining_amount)) {                                    
+                                        if ($don->remaining_amount >= $reward->amount) {
+                                            array_push($suggested, $don);
+                                        } else {
+                                            array_push($country, $don);
+                                        }
+                                    }
+                                    # Old rewards with remaining amount to be received
+                                    else {
+                                        if ($don->remaining_amount >= $reward->remaining_amount) {
+                                            array_push($suggested, $don);
+                                        } else {
+                                            array_push($country, $don);
+                                        }
                                     }
                                 }
-                            } 
-                            # Old don with remaining amount to be given
-                            else {
-                                # New created reward
-                                if ($reward->remaining_amount == 0 || !is_null($reward->remaining_amount)) {                                    
-                                    if ($don->remaining_amount >= $reward->amount) {
-                                        array_push($suggested, $don);
-                                    } else {
-                                        array_push($country, $don);
-                                    }
-                                }
-                                # Old rewards with remaining amount to be received
-                                else {
-                                    if ($don->remaining_amount >= $reward->remaining_amount) {
-                                        array_push($suggested, $don);
-                                    } else {
-                                        array_push($country, $don);
-                                    }
-                                }
+                            } else {
+                                array_push($countries, $don);
                             }
-                        } else {
-                            array_push($countries, $don);
                         }
                     }
                 }
@@ -913,12 +557,438 @@ class FusionsController extends Controller
     }
 
     /**
+     * Store Association
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function storeAssociation (Request $request)
+    {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
+        abort_unless(auth()->user()->isTopManager(), 403);
+
+        if ($request->has("d") && $request->has("r")) {
+
+            $don = Don::where('reference', $request->d)->first();
+            $reward = Reward::where('reference', $request->r)->first();
+
+            if (is_null($don) || is_null($reward)) {
+                alert()->error("Introuvable", "Le don ou la recompense est introuvable")->persistent();
+                return redirect()->back();
+            }
+            
+            if (is_null($don->user) || is_null($reward->user)) {
+                alert()->error("Introuvable", "Le donateur ou le bénéficaire est introuvable")->persistent();
+                return redirect()->back();
+            }
+
+            if ($don->is_usd != $reward->is_usd) {
+                alert()->error("Introuvable", "Le don et la recompense doivent être de la même devise.")->persistent();
+                return redirect()->back();
+            }
+
+            if ($don->user->id == $reward->user->id) {
+                alert()->error("Erreur", "Correspondants identiques")->persistent();
+                return redirect()->back();
+            }
+
+            if ($reward->isReady() == false) {
+                alert()->error("Erreur", "La recompense n'est pas encore mature.")->persistent();
+                return redirect()->back();
+            }
+
+            if ($don->isFusioned() || $reward->isFusioned()) {
+                alert()->error("Erreur", "Le don ou la recompense est déjà totalement associé")->persistent();
+                return redirect()->back();
+            }
+
+            if ($don->isCompleted() || $reward->isCompleted()) {
+                alert()->error("Erreur", "Le don ou la recompense est déjà totalement envoyé ou totalement reçu")->persistent();
+                return redirect()->back();
+            }
+
+            # Creating fusion
+            # Newly created don
+            if (is_null($don->remaining_amount) || $don->remaining_amount == 0) {
+                # New created reward
+                if ($reward->remaining_amount == 0 || is_null($reward->remaining_amount)) { 
+                    # Don amount equals reward amount                                   
+                    if ($don->amount == $reward->amount) {
+                        $fusion = Fusion::create([
+                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
+                            "don_id" => $don->id,
+                            "reward_id" => $reward->id,
+                            "sender" => $don->user->id, 
+                            "receiver" => $reward->user->id,
+                            "amount" => $don->amount, 
+                            "source" => $reward->source,
+                            "is_usd" => $don->is_usd == 1 || $reward->is_usd == 1,
+                            "user_id" => auth()->user()->id,
+                            "status" => "pending_sender",
+                            "status_comment" => "Fusion initiated",
+                            "created_at" => now(),
+                            "updated_at" => now(),
+                        ]);
+
+                        # Updating don
+                        $don->remaining_amount = $don->amount - $fusion->amount;
+                        $don->save();
+                        # Updating reward
+                        $reward->remaining_amount = $reward->amount - $fusion->amount;
+                        $reward->save();
+                        # Returning to don details
+                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." ".($fusion->is_usd ? 'USD' : 'XOF')." entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
+                        return redirect()->route("associations.index");
+                    }
+                    # Don amount greater than reward amount                                   
+                    if ($don->amount > $reward->amount) {
+                        $fusion = Fusion::create([
+                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
+                            "don_id" => $don->id,
+                            "reward_id" => $reward->id,
+                            "sender" => $don->user->id, 
+                            "receiver" => $reward->user->id,
+                            "amount" => $reward->amount, 
+                            "source" => $reward->source,
+                            "is_usd" => $don->is_usd == 1 || $reward->is_usd == 1,
+                            "user_id" => auth()->user()->id,
+                            "status" => "pending_sender",
+                            "status_comment" => "Fusion initiated",
+                            "created_at" => now(),
+                            "updated_at" => now(),
+                        ]);
+
+                        # Updating don
+                        $don->remaining_amount = $don->amount - $fusion->amount;
+                        $don->save();
+                        # Updating reward
+                        $reward->remaining_amount = $reward->amount - $fusion->amount;
+                        $reward->save();
+                        # Returning to don details
+                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." ".($fusion->is_usd ? 'USD' : 'XOF')." entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
+                        return redirect()->route("associations.index");
+                    }
+                    # Don amount smaller than reward amount                                   
+                    if ($don->amount < $reward->amount) {
+                        $fusion = Fusion::create([
+                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
+                            "don_id" => $don->id,
+                            "reward_id" => $reward->id,
+                            "sender" => $don->user->id, 
+                            "receiver" => $reward->user->id,
+                            "amount" => $don->amount, 
+                            "source" => $reward->source,
+                            "is_usd" => $don->is_usd == 1 || $reward->is_usd == 1,
+                            "user_id" => auth()->user()->id,
+                            "status" => "pending_sender",
+                            "status_comment" => "Fusion initiated",
+                            "created_at" => now(),
+                            "updated_at" => now(),
+                        ]);
+
+                        # Updating don
+                        $don->remaining_amount = $don->amount - $fusion->amount;
+                        $don->save();
+                        # Updating reward
+                        $reward->remaining_amount = $reward->amount - $fusion->amount;
+                        $reward->save();
+                        # Returning to don details
+                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." ".($fusion->is_usd ? 'USD' : 'XOF')." entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
+                        return redirect()->route("associations.index");
+                    }                    
+                }
+                # Old rewards with remaining amount to be received
+                elseif ($reward->remaining_amount > 0) {
+                    # Don amount equals reward remaining amount                                   
+                    if ($don->amount == $reward->remaining_amount) {
+                        $fusion = Fusion::create([
+                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
+                            "don_id" => $don->id,
+                            "reward_id" => $reward->id,
+                            "sender" => $don->user->id, 
+                            "receiver" => $reward->user->id,
+                            "amount" => $don->amount, 
+                            "source" => $reward->source,
+                            "is_usd" => $don->is_usd == 1 || $reward->is_usd == 1,
+                            "user_id" => auth()->user()->id,
+                            "status" => "pending_sender",
+                            "status_comment" => "Fusion initiated",
+                            "created_at" => now(),
+                            "updated_at" => now(),
+                        ]);
+
+                        # Updating don
+                        $don->remaining_amount = $don->amount - $fusion->amount;
+                        $don->save();
+                        # Updating reward
+                        $reward->remaining_amount = $reward->remaining_amount - $fusion->amount;
+                        $reward->save();
+                        # Returning to don details
+                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." ".($fusion->is_usd ? 'USD' : 'XOF')." entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
+                        return redirect()->route("associations.index");
+                    }
+                    # Don amount greater than reward remaining amount                                   
+                    if ($don->amount > $reward->remaining_amount) {
+                        $fusion = Fusion::create([
+                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
+                            "don_id" => $don->id,
+                            "reward_id" => $reward->id,
+                            "sender" => $don->user->id, 
+                            "receiver" => $reward->user->id,
+                            "amount" => $reward->remaining_amount, 
+                            "source" => $reward->source,
+                            "is_usd" => $don->is_usd == 1 || $reward->is_usd == 1,
+                            "user_id" => auth()->user()->id,
+                            "status" => "pending_sender",
+                            "status_comment" => "Fusion initiated",
+                            "created_at" => now(),
+                            "updated_at" => now(),
+                        ]);
+
+                        # Updating don
+                        $don->remaining_amount = $don->amount - $fusion->amount;
+                        $don->save();
+                        # Updating reward
+                        $reward->remaining_amount = $reward->remaining_amount - $fusion->amount;
+                        $reward->save();
+                        # Returning to don details
+                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." ".($fusion->is_usd ? 'USD' : 'XOF')." entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
+                        return redirect()->route("associations.index");
+                    }
+                    # Don amount smaller than reward remaining amount                                   
+                    if ($don->amount < $reward->remaining_amount) {
+                        $fusion = Fusion::create([
+                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
+                            "don_id" => $don->id,
+                            "reward_id" => $reward->id,
+                            "sender" => $don->user->id, 
+                            "receiver" => $reward->user->id,
+                            "amount" => $don->amount, 
+                            "source" => $reward->source,
+                            "is_usd" => $don->is_usd == 1 || $reward->is_usd == 1,
+                            "user_id" => auth()->user()->id,
+                            "status" => "pending_sender",
+                            "status_comment" => "Fusion initiated",
+                            "created_at" => now(),
+                            "updated_at" => now(),
+                        ]);
+
+                        # Updating don
+                        $don->remaining_amount = $don->amount - $fusion->amount;
+                        $don->save();
+                        # Updating reward
+                        $reward->remaining_amount = $reward->remaining_amount - $fusion->amount;
+                        $reward->save();
+                        # Returning to don details
+                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." ".($fusion->is_usd ? 'USD' : 'XOF')." entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
+                        return redirect()->route("associations.index");
+                    }
+                } 
+                # Invalid value for reward remaining amount
+                alert()->error("Erreur", "La valeur du montant restant de la recompense est invalide")->persistent();
+                return redirect()->back();
+            }
+            # Old don with remaining amount 
+            elseif ($don->remaining_amount > 0) {
+                # New created reward
+                if ($reward->remaining_amount == 0 || is_null($reward->remaining_amount)) { 
+                    # Don remaining amount equals reward amount                                   
+                    if ($don->remaining_amount == $reward->amount) {
+                        $fusion = Fusion::create([
+                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
+                            "don_id" => $don->id,
+                            "reward_id" => $reward->id,
+                            "sender" => $don->user->id, 
+                            "receiver" => $reward->user->id,
+                            "amount" => $don->remaining_amount, 
+                            "source" => $reward->source,
+                            "is_usd" => $don->is_usd == 1 || $reward->is_usd == 1,
+                            "user_id" => auth()->user()->id,
+                            "status" => "pending_sender",
+                            "status_comment" => "Fusion initiated",
+                            "created_at" => now(),
+                            "updated_at" => now(),
+                        ]);
+
+                        # Updating don
+                        $don->remaining_amount = $don->remaining_amount - $fusion->amount;
+                        $don->save();
+                        # Updating reward
+                        $reward->remaining_amount = $reward->amount - $fusion->amount;
+                        $reward->save();
+                        # Returning to don details
+                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." ".($fusion->is_usd ? 'USD' : 'XOF')." entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
+                        return redirect()->route("associations.index");
+                    }
+                    # Don remaining amount greater than reward amount                                   
+                    if ($don->remaining_amount > $reward->amount) {
+                        $fusion = Fusion::create([
+                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
+                            "don_id" => $don->id,
+                            "reward_id" => $reward->id,
+                            "sender" => $don->user->id, 
+                            "receiver" => $reward->user->id,
+                            "amount" => $reward->amount, 
+                            "source" => $reward->source,
+                            "is_usd" => $don->is_usd == 1 || $reward->is_usd == 1,
+                            "user_id" => auth()->user()->id,
+                            "status" => "pending_sender",
+                            "status_comment" => "Fusion initiated",
+                            "created_at" => now(),
+                            "updated_at" => now(),
+                        ]);
+
+                        # Updating don
+                        $don->remaining_amount = $don->remaining_amount - $fusion->amount;
+                        $don->save();
+                        # Updating reward
+                        $reward->remaining_amount = $reward->amount - $fusion->amount;
+                        $reward->save();
+                        # Returning to don details
+                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." ".($fusion->is_usd ? 'USD' : 'XOF')." entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
+                        return redirect()->route("associations.index");
+                    }
+                    # Don remaining amount smaller than reward amount                                   
+                    if ($don->remaining_amount < $reward->amount) {
+                        $fusion = Fusion::create([
+                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
+                            "don_id" => $don->id,
+                            "reward_id" => $reward->id,
+                            "sender" => $don->user->id, 
+                            "receiver" => $reward->user->id,
+                            "amount" => $don->remaining_amount, 
+                            "source" => $reward->source,
+                            "is_usd" => $don->is_usd == 1 || $reward->is_usd == 1,
+                            "user_id" => auth()->user()->id,
+                            "status" => "pending_sender",
+                            "status_comment" => "Fusion initiated",
+                            "created_at" => now(),
+                            "updated_at" => now(),
+                        ]);
+
+                        # Updating don
+                        $don->remaining_amount = $don->remaining_amount - $fusion->amount;
+                        $don->save();
+                        # Updating reward
+                        $reward->remaining_amount = $reward->amount - $fusion->amount;
+                        $reward->save();
+                        # Returning to don details
+                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." ".($fusion->is_usd ? 'USD' : 'XOF')." entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
+                        return redirect()->route("associations.index");
+                    }                    
+                }
+                # Old rewards with remaining amount to be received
+                elseif ($reward->remaining_amount > 0) {
+                    # Don remaining amount equals reward remaining amount                                   
+                    if ($don->remaining_amount == $reward->remaining_amount) {
+                        $fusion = Fusion::create([
+                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
+                            "don_id" => $don->id,
+                            "reward_id" => $reward->id,
+                            "sender" => $don->user->id, 
+                            "receiver" => $reward->user->id,
+                            "amount" => $don->remaining_amount, 
+                            "source" => $reward->source,
+                            "is_usd" => $don->is_usd == 1 || $reward->is_usd == 1,
+                            "user_id" => auth()->user()->id,
+                            "status" => "pending_sender",
+                            "status_comment" => "Fusion initiated",
+                            "created_at" => now(),
+                            "updated_at" => now(),
+                        ]);
+
+                        # Updating don
+                        $don->remaining_amount = $don->remaining_amount - $fusion->amount;
+                        $don->save();
+                        # Updating reward
+                        $reward->remaining_amount = $reward->remaining_amount - $fusion->amount;
+                        $reward->save();
+                        # Returning to don details
+                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." ".($fusion->is_usd ? 'USD' : 'XOF')." entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
+                        return redirect()->route("associations.index");
+                    }
+                    # Don remaining amount greater than reward remaining amount                                   
+                    if ($don->remaining_amount > $reward->remaining_amount) {
+                        $fusion = Fusion::create([
+                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
+                            "don_id" => $don->id,
+                            "reward_id" => $reward->id,
+                            "sender" => $don->user->id, 
+                            "receiver" => $reward->user->id,
+                            "amount" => $reward->remaining_amount, 
+                            "source" => $reward->source,
+                            "is_usd" => $don->is_usd == 1 || $reward->is_usd == 1,
+                            "user_id" => auth()->user()->id,
+                            "status" => "pending_sender",
+                            "status_comment" => "Fusion initiated",
+                            "created_at" => now(),
+                            "updated_at" => now(),
+                        ]);
+
+                        # Updating don
+                        $don->remaining_amount = $don->remaining_amount - $fusion->amount;
+                        $don->save();
+                        # Updating reward
+                        $reward->remaining_amount = $reward->remaining_amount - $fusion->amount;
+                        $reward->save();
+                        # Returning to don details
+                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." ".($fusion->is_usd ? 'USD' : 'XOF')." entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
+                        return redirect()->route("associations.index");
+                    }
+                    # Don remaining amount smaller than reward remaining amount                                   
+                    if ($don->remaining_amount < $reward->remaining_amount) {
+                        $fusion = Fusion::create([
+                            "reference" => \App\Utils\Utils::generateReference(Fusion::all(), \App\Utils\Utils::fakeToken(20), 1),
+                            "don_id" => $don->id,
+                            "reward_id" => $reward->id,
+                            "sender" => $don->user->id, 
+                            "receiver" => $reward->user->id,
+                            "amount" => $don->remaining_amount, 
+                            "source" => $reward->source,
+                            "is_usd" => $don->is_usd == 1 || $reward->is_usd == 1,
+                            "user_id" => auth()->user()->id,
+                            "status" => "pending_sender",
+                            "status_comment" => "Fusion initiated",
+                            "created_at" => now(),
+                            "updated_at" => now(),
+                        ]);
+
+                        # Updating don
+                        $don->remaining_amount = $don->remaining_amount - $fusion->amount;
+                        $don->save();
+                        # Updating reward
+                        $reward->remaining_amount = $reward->remaining_amount - $fusion->amount;
+                        $reward->save();
+                        # Returning to don details
+                        alert()->success("Bravo !", "L'association de ".number_format($fusion->amount, 2)." ".($fusion->is_usd ? 'USD' : 'XOF')." entre [ ".$don->user->name." ] et [ ".$reward->user->name." ] a été ajoutée avec succès.")->persistent();
+                        return redirect()->route("associations.index");
+                    }
+                } 
+                # Invalid value for reward remaining amount
+                alert()->error("Erreur", "La valeur du montant restant de la recompense est invalide")->persistent();
+                return redirect()->back();
+            }
+            # Invalid value for don remaining amount
+            alert()->error("Erreur", "La valeur du montant restant du don est invalide")->persistent();
+            return redirect()->back();
+        } else {
+            alert()->error("Erreur", "Un ou plusieurs champs manquants")->persistent();
+            return redirect()->back();
+        }
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        if (auth()->user()->isTopManager()) {
-            
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
         }
         abort(404);
     }
@@ -928,6 +998,11 @@ class FusionsController extends Controller
      */
     public function show(string $reference)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         $fusion = Fusion::where('reference', $reference)->first();
         abort_unless(!is_null($fusion), 404);
         if (auth()->user()->hasFusion($fusion) || auth()->user()->isPartOfAdmin()) {
@@ -940,9 +1015,11 @@ class FusionsController extends Controller
      */
     public function edit(string $id)
     {
-        if (auth()->user()->isTopManager()) {
-            
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
         }
+
         abort(404);
     }
 
@@ -951,9 +1028,11 @@ class FusionsController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        if (auth()->user()->isTopManager()) {
-            
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
         }
+
         abort(404);
     }
 
@@ -962,8 +1041,13 @@ class FusionsController extends Controller
      */
     public function destroy(string $id)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (auth()->user()->isTopManager()) {
-            $fusion = Fusion::find($id);
+            $fusion = auth()->user()->isRoot() ? Fusion::withTrashed()->find($id) : Fusion::find($id);
             abort_unless(!is_null($fusion), 404);
             if ($fusion->isSent() == false && $fusion->isReceived() == false) {
                 if (is_null($fusion->deleted_at)) {
@@ -976,7 +1060,7 @@ class FusionsController extends Controller
                     }
                 }
             } else {
-                alert()->error("Suppression impossible", "Le montant de cette association a déjà envoyé ou reçu.");
+                alert()->error("Suppression impossible", "Le montant de cette association a déjà été envoyé ou reçu.");
             }
             return redirect()->route('associations.index');
         }

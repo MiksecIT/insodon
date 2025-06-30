@@ -117,7 +117,15 @@
                                                                     <strong>Pack:</strong> 
                                                                     @if (!is_null($don->pack))
                                                                     <a href="{{ auth()->user()->isPartOfAdmin() ? route('packs.show', $don->pack->reference) : '#!' }}">
-                                                                        {{ $don->pack->label }} <span class="text-muted">(@convert($don->pack->amount) FCFA)</span>
+                                                                        {{ $don->pack->label }} 
+                                                                        <span class="text-muted">
+                                                                            (@if($don->is_usd) 
+                                                                                @convert($don->pack->amount_usd) 
+                                                                            @else 
+                                                                                @convert($don->pack->amount) 
+                                                                            @endif 
+                                                                            @if($don->is_usd) &dollar; @else XOF @endif)
+                                                                        </span>
                                                                     </a>
                                                                     @else
                                                                     <span class="badge bg-label-secondary">introuvable</span>
@@ -126,7 +134,10 @@
                                                                 <div class="col-12 mb-3">
                                                                     <strong>Restant:</strong> 
                                                                     @if (!is_null($don->pack))
-                                                                        @convert($don->remaining_amount) FCFA
+                                                                        @convert($don->remaining_amount) 
+                                                                        <span class="text-muted">
+                                                                            @if ($don->is_usd) &dollar; @else XOF @endif
+                                                                        </span>
                                                                     @else
                                                                         <span class="badge bg-label-secondary">introuvable</span>
                                                                     @endif

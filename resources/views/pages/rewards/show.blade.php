@@ -23,7 +23,16 @@
                             <div class="col-md-8">
                                 <h4 class="fw-bold py-3">
                                     Détails du la recompense
-                                    <span class="badge bg-label-{{ $reward->isReady() ? 'success' : 'danger'}}">@if($reward->isReady()) mature @else pas encore mature @endif</span>
+                                    
+                                    @if ($reward->source == "don")
+                                        <span class="badge bg-label-info">#don</span>
+                                    @elseif ($reward->source == "bonus")
+                                        <span class="badge bg-label-info">#bonus</span>
+                                    @else
+                                        <span class="badge bg-label-secondary">source inconnue</span>
+                                    @endif
+                                    
+                                    <span class="ml-5 badge bg-label-{{ $reward->isReady() ? 'success' : 'danger'}}">@if($reward->isReady()) mature @else pas encore mature @endif</span>
                                 </h4>
                                 <p class="text-muted">
                                     <span class="text-muted" style="font-size: 13px;">
@@ -74,7 +83,21 @@
                                             </button>
                                         </li>
                                         
-                                        
+                                        @if ($reward->source == "bonus")
+                                        <li class="nav-item">
+                                            <button
+                                            type="button"
+                                            class="nav-link"
+                                            role="tab"
+                                            data-bs-toggle="tab"
+                                            data-bs-target="#navs-pills-justified-bonus"
+                                            aria-controls="navs-pills-justified-bonus"
+                                            aria-selected="false"
+                                            >
+                                                <i class="tf-icons bx bx-rocket"></i> Les bonus  &bullet; {{ count($reward->royalties) }}
+                                            </button>
+                                        </li>
+                                        @endif
                                     </ul>
                                     <div class="tab-content">
                                         
@@ -104,12 +127,26 @@
                                                                 </div>
                                                                 <div class="col-12 mb-3">
                                                                     <strong>Montant:</strong> 
-                                                                    @convert($reward->amount) <span class="text-muted">FCFA</span>
+                                                                    @convert($reward->amount) 
+                                                                    <span class="text-muted">
+                                                                        @if ($reward->is_usd)
+                                                                        &dollar;
+                                                                        @else
+                                                                        XOF
+                                                                        @endif
+                                                                    </span>
                                                                 </div>
                                                                 <div class="col-12  mb-3">
                                                                     <strong>Montant restant:</strong> 
                                                                     @if (!is_null($reward->remaining_amount) && $reward->remaining_amount > 0)
-                                                                    @convert($reward->remaining_amount) <span class="text-muted">FCFA</span>
+                                                                    @convert($reward->remaining_amount)
+                                                                    <span class="text-muted">
+                                                                        @if ($reward->is_usd)
+                                                                        &dollar;
+                                                                        @else
+                                                                        XOF
+                                                                        @endif
+                                                                    </span>
                                                                     @else
                                                                     <span class="badge bg-label-secondary">rien</span>
                                                                     @endif
@@ -155,9 +192,17 @@
                                                                             @if($reward->user->id == auth()->user()->id)<span class="badge bg-label-secondary">Vous</span> @endif
                                                                         </a>
 
-                                                                        @if ($reward->isFusioned() == false && $reward->isReady())
+                                                                        @if ($reward->isFusioned() == false && $reward->isReady() && auth()->user()->isPartOfAdmin())
                                                                             <a href="{{ route('associations.createFromReward', $reward->reference) }}" style="display: block; width:100%; margin-top:20px;" type="button" class="btn btn-primary">
-                                                                                <span class="tf-icons bx bx-link"></span> Associer @convert($reward->remaining_amount) <span class="text-muted">FCFA</span>
+                                                                                <span class="tf-icons bx bx-link"></span> 
+                                                                                Associer @convert($reward->remaining_amount) 
+                                                                                <span class="text-muted">
+                                                                                    @if ($reward->is_usd)
+                                                                                    &dollar;
+                                                                                    @else
+                                                                                    XOF
+                                                                                    @endif
+                                                                                </span>
                                                                             </a>
                                                                         @endif
 
@@ -186,7 +231,14 @@
                                                                     <strong>Pack:</strong> 
                                                                     @if (!is_null($reward->don->pack))
                                                                     <a href="{{ auth()->user()->isPartOfAdmin() ? route('packs.show', $reward->don->pack->reference) : '#!' }}">
-                                                                        {{ $reward->don->pack->label }} <span class="text-muted">(@convert($reward->don->pack->amount) FCFA)</span>
+                                                                        {{ $reward->don->pack->label }} 
+                                                                        <span class="text-muted"> 
+                                                                            @if ($reward->don->is_usd)
+                                                                            @convert($reward->don->pack->amount_usd) &dollar;
+                                                                            @else
+                                                                            @convert($reward->don->pack->amount) XOF
+                                                                            @endif
+                                                                        </span>
                                                                     </a>
                                                                     @else
                                                                     <span class="badge bg-label-secondary">introuvable</span>
@@ -195,7 +247,14 @@
                                                                 <div class="col-12  mb-3">
                                                                     <strong>Montant restant:</strong> 
                                                                     @if (!is_null($reward->don->remaining_amount) && $reward->don->remaining_amount > 0)
-                                                                    @convert($reward->don->remaining_amount) <span class="text-muted">FCFA</span>
+                                                                    @convert($reward->don->remaining_amount) 
+                                                                    <span class="text-muted">
+                                                                        @if ($reward->don->is_usd)
+                                                                        &dollar;
+                                                                        @else
+                                                                        XOF
+                                                                        @endif
+                                                                    </span>
                                                                     @else
                                                                     <span class="badge bg-label-secondary">rien</span>
                                                                     @endif
@@ -235,7 +294,15 @@
                                                                         </a>
                                                                         @if ($reward->don->isFusioned() == false && auth()->user()->isPartOfAdmin())
                                                                             <a href="{{ route('associations.createFromDon', $reward->don->reference) }}" style="display: block; width:100%; margin-top:20px;" type="button" class="btn btn-primary">
-                                                                                <span class="tf-icons bx bx-link"></span> Associer @convert($reward->don->remaining_amount) <span class="text-muted">FCFA</span>
+                                                                                <span class="tf-icons bx bx-link"></span>
+                                                                                Associer @convert($reward->don->remaining_amount) 
+                                                                                <span class="text-muted">
+                                                                                    @if ($reward->don->is_usd)
+                                                                                    &dollar;
+                                                                                    @else
+                                                                                    XOF
+                                                                                    @endif
+                                                                                </span>
                                                                             </a>
                                                                         @endif
                                                                     @else
@@ -275,7 +342,26 @@
                                             </div>
                                         </div>
                                         
-                                    
+                                        @if ($reward->source == "bonus")
+                                        <div class="tab-pane fade" id="navs-pills-justified-bonus" role="tabpanel">
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <p>
+                                                        Toutes les bonus associés
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    @if (count($reward->royalties) >0)
+                                                    @include("layouts.components.bonusList-component", ["bonus" => $reward->royalties, "view" => "reward"])
+                                                    @else
+                                                    <div class="badge bg-label-secondary">Pas disponible</div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

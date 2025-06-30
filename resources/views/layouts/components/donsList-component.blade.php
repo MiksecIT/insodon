@@ -14,14 +14,88 @@
         <tbody class="table-border-bottom-0">
             @foreach ($dons as $don)
             <tr>
-                <td>{{ $don->reference }}</td>
+                <td>
+                    {{ $don->reference }}
+
+                    <div style="font-size:12px; margin-top: 10px;" class="text-muted">
+                        <span class="tf-icons bx bx-calendar"></span> {{ $don->created_at }}
+                    </div>
+                    @if (is_null($don->deleted_at) && auth()->user()->hasDon($don) || auth()->user()->isRoot())
+                    
+                    <br><br>
+                    <button 
+                        title="Voir les portefeuilles"
+                        type="button" 
+                        class="btn btn-outline-danger"
+                        data-bs-toggle="modal"
+                        data-bs-target="#giftDelModal{{ $don->reference }}">
+                        <span class="tf-icons bx bx-trash"></span>
+                        @if (is_null($don->deleted_at))
+                        Supprimer
+                        @else 
+                            @if (auth()->user()->isRoot())
+                            Supprimer définitivement
+                            @endif
+                        @endif
+                    </button>
+                    
+                    <div class="modal fade" id="giftDelModal{{ $don->reference }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-scrollable" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalCenterTitle">
+                                    @if (is_null($don->deleted_at))
+                                    Suppression
+                                    @else 
+                                        @if (auth()->user()->isRoot())
+                                        Suppression définitivement
+                                        @endif
+                                    @endif
+                                </h5>
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col">
+                                        Voulez-vous vraiment supprimer 
+                                        @if (is_null($don->deleted_at))
+                                        
+                                        @else 
+                                            @if (auth()->user()->isRoot())
+                                            définitivement
+                                            @endif
+                                        @endif ce don ?                                        
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                    Fermer
+                                </button>
+                                <button onclick="$('#form-del{{ $don->reference }}').submit();" type="button" class="btn btn-primary">Oui, je confirme</button>
+                                <form id="form-del{{ $don->reference }}" action="{{ route('gifts.destroy', $don->id) }}" method="POST">
+                                    @csrf
+                                    <input type="text" name="_method" value="DELETE" hidden>
+                                </form>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    
+                    @endif
+                </td>
                 <td>
                     @if (!is_null($don->pack)){{ $don->pack->label }}@else <span class="text-mued">Oups, pack introuvable</span> @endif
                     
                     <span class="badge rounded-pill bg-label-@if($don->position == 'first')danger @elseif($don->position == 'second')warning @elseif($don->position == 'third')success @endif">{{ ucfirst($don->position) }}</span>
                     
                     <br>
-                    <span class="tf-icons bx bx-gift"></span> <span class="text-muted">&rarr;</span> <strong>@convert($don->amount)</strong> <span class="text-muted">XOF</span> 
+                    <span class="tf-icons bx bx-gift"></span> <span class="text-muted">&rarr;</span> <strong>@convert($don->amount)</strong> <span class="text-muted">@if($don->is_usd) &dollar; @else XOF @endif</span> 
                     @if (!is_null($don->amount_usd))
                     &bullet; <strong>@convert($don->amount_usd)</strong> <span class="pb-1 mb-4 text-muted">&dollar;</span>
                     @endif
@@ -72,7 +146,7 @@
                     @endif
                 </td>
                 <td>
-                    <strong>@if($don->isCompleted())@convert(0) @else @convert($don->remaining_amount)@endif</strong> <span class="text-muted">FCFA</span></td>
+                    <strong>@if($don->isCompleted())@convert(0) @else @convert($don->remaining_amount)@endif</strong> <span class="text-muted">@if($don->is_usd) &dollar; @else XOF @endif</span></td>
                 <td>
                     
                     <span class="badge bg-label-{{ $don->isFusioned() ? 'success' : 'secondary' }} me-1"><span class="tf-icons bx bx-link"></span> associé</span> <br><br>
@@ -80,6 +154,7 @@
                     
                 </td>
                 <td>
+                    @if(is_null($don->deleted_at))
                     <a title="Voir les détails" href="{{ route('gifts.show', $don->reference) }}" type="button" class="btn rounded-pill btn-icon btn-outline-primary">
                         <span class="tf-icons bx bx-detail"></span>
                     </a>
@@ -99,6 +174,7 @@
                     </a>
                         @endif
                     
+                    @endif
                 </td>
             </tr>
             @endforeach

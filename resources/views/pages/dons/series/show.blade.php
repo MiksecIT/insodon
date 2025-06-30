@@ -30,6 +30,11 @@
                                     </span>
                                 </p>
                             </div>
+                            <div class="col-md-4" style="text-align: right !important;">
+                                <a href="{{ route('gifts.series.list') }}" type="button" class="btn btn-outline-primary">
+                                    <span class="tf-icons bx bx-gift"></span>&nbsp; Voir la liste
+                                </a>
+                            </div>
                         </div>
                         
                         <div class="row">
@@ -42,23 +47,26 @@
                             
                             <div class="col col-sm-6">
                                 <div class="card h-100">
-                                    <img class="card-img-top" src="{{Vite::asset('resources/assets/img/elements/3.jpg')}}" alt="Card image cap" />
+                                    <img class="card-img-top" src="{{ !is_null($don->pack) ? load_asset_url($don->pack->image_url) : load_asset_url(null) }}" alt="Card image cap" />
                                     <div class="card-body">
                                         <h6 class="card-title">
+                                            @if (!is_null($don->pack))
                                             {{ $don->pack->label }}
-                                            <span class="badge bg-label-@if($don->position == 'first')danger @elseif($don->position == 'second')warning @elseif($don->position == 'third')success @endif">
-                                                @if ($don->position == "first")
-                                                Premier
-                                                @elseif ($don->position == "second")
-                                                Deuxième
-                                                @elseif ($don->position == "third")
-                                                Troisième
-                                                @endif
-                                            </span>                                            
+                                            <span class="badge bg-label-danger">
+                                                premier
+                                            </span>   
+                                            @else
+                                            <span class="badge bg-label-secondary">pack introuvable</span>
+                                            @endif
                                         </h6>
-                                        <h4 class="card-title">@convert($don->pack->amount) <span class="text-muted">XOF</span> 
+                                        <h4 class="card-title">
+                                            @if (!is_null($don->pack))
+                                            <span class="{{ $don->is_usd == 1 ? '' : 'text-primary' }}">@convert($don->pack->amount)</span> <span class="text-muted">XOF</span> 
                                             @if (!is_null($don->pack->amount_usd))
-                                            &bullet; @convert($don->pack->amount_usd) <span class="pb-1 mb-4 text-muted">&dollar;</span>
+                                            &bullet; <span class="{{ $don->is_usd == 1 ? 'text-primary' : '' }}">@convert($don->pack->amount_usd)</span> <span class="text-muted">&dollar;</span>
+                                            @endif
+                                            @else
+                                            @convert($don->amount) @if ($don->is_usd) <span class="text-muted">XOF</span> @else <span class="text-muted">&dollar;</span> @endif
                                             @endif
                                         </h4>
                                         <p class="text-muted">
@@ -75,29 +83,41 @@
 
                             <div class="col col-sm-6">
                                 <div class="card h-100">
-                                    <img class="card-img-top" src="{{Vite::asset('resources/assets/img/elements/3.jpg')}}" alt="Card image cap" />
+                                    <img class="card-img-top" src="{{ !is_null($don->pack) ? load_asset_url($don->pack->image_url) : load_asset_url(null) }}" alt="Card image cap" />
                                     <div class="card-body">
                                         <h6 class="card-title">
+                                            @if (!is_null($don->pack))
                                             {{ $don->pack->label }}
                                             <span class="badge bg-label-warning">
-                                                Deuxième
-                                            </span>                                            
+                                                deuxième
+                                            </span>   
+                                            @else
+                                            <span class="badge bg-label-secondary">pack introuvable</span>
+                                            @endif                                            
                                         </h6>
-                                        <h4 class="card-title">@convert($don->pack->amount) <span class="text-muted">XOF</span> 
+                                        <h4 class="card-title">
+                                            @if (!is_null($don->pack))
+                                            <span class="@if(!is_null($don->secondDon())){{ $don->secondDon()->is_usd == 1 ? '' : 'text-primary' }}@endif">@convert($don->pack->amount)</span> <span class="text-muted">XOF</span> 
                                             @if (!is_null($don->pack->amount_usd))
-                                            &bullet; @convert($don->pack->amount_usd) <span class="pb-1 mb-4 text-muted">&dollar;</span>
+                                            &bullet; <span class="@if(!is_null($don->secondDon())) {{ $don->secondDon()->is_usd == 1 ? 'text-primary' : '' }} @endif">@convert($don->pack->amount_usd)</span> <span class="text-muted">&dollar;</span>
+                                            @endif
+                                            @else
+                                                @if (!is_null($don->secondDon()))
+                                                @convert($don->secondDon()->amount) 
+                                                <span class="text-muted"> 
+                                                    @if ($don->secondDon()->is_usd) &dollar; @else XOF @endif
+                                                </span>
+                                                @else
+                                                <span class="badge bg-label-secondary">introuvable</span>
+                                                @endif
                                             @endif
                                         </h4>
                                         <p class="text-muted">
-                                            @if($don->isCompleted())
-                                                @if (!is_null($don->secondDon()))
-                                                    <span class="badge bg-label-{{ $don->secondDon()->isCompleted() ? 'success' : 'secondary' }}">{{ $don->secondDon()->isCompleted() ? 'envoyé' : 'en cours' }}</span> &bullet; 
-                                                    {{ count($don->secondDon()->fusionsCompleted()) }}/{{ count($don->secondDon()->fusions) }} association(s) terminée(s)
-                                                @else
-                                                <span class="badge bg-label-secondary">en attente de don</span>
-                                                @endif
+                                            @if (!is_null($don->secondDon()))
+                                                <span class="badge bg-label-{{ $don->secondDon()->isCompleted() ? 'success' : 'secondary' }}">{{ $don->secondDon()->isCompleted() ? 'envoyé' : 'en cours' }}</span> &bullet; 
+                                                {{ count($don->secondDon()->fusionsCompleted()) }}/{{ count($don->secondDon()->fusions) }} association(s) terminée(s)
                                             @else
-                                            <span class="badge bg-label-secondary">En attente de la clôture du premier don</span>
+                                            <span class="badge bg-label-secondary">en attente de don</span>
                                             @endif
                                         </p>
                                         <hr>
@@ -106,11 +126,59 @@
                                             <span class="tf-icons bx bx-details"></span>&nbsp; Détails
                                         </a>
                                         @else
-                                        <button type="button" @if($don->isCompleted()) class="btn btn-primary" onclick="if(confirm('Voulez-vous vraiment faire ce deuxième don ?')) {$('#form-suit{{ $don->reference }}').submit();}" style="display: block; width:100%;" @else class="btn btn-secondary"  style="display: block; width:100%; cursor:not-allowed;" @endif><span class="tf-icons bx bx-rocket"></span> Faire un don</button>
-                                        <form id="form-suit{{ $don->reference }}" action="{{ route('gifts.suits.donate.second', $don->reference) }}" method="POST">
-                                            @csrf
-                                            <input type="text" name="u__d" value="{{ $don->reference }}" hidden>
-                                        </form>
+                                        <button type="button" 
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#secondGiftModal" 
+                                            class="btn btn-primary" 
+                                            style="display: block; width:100%;" 
+                                            >
+                                                <span class="tf-icons bx bx-rocket"></span> Faire un don
+                                            </button>
+                                            <div class="modal fade" id="secondGiftModal" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-scrollable" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="modalCenterTitle">Devise du don</h5>
+                                                            <button
+                                                                type="button"
+                                                                class="btn-close"
+                                                                data-bs-dismiss="modal"
+                                                                aria-label="Close"
+                                                            ></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="row">
+                                                                <div class="col">                                                                
+                                                                    Veuillez choisir la dévise dans laquelle vous voulez faire le don. <br>
+                                                                    
+                                                                    <form id="form-secondGift" action="{{ route('gifts.store') }}" class="mt-3" method="POST">
+                                                                        @csrf
+                                                                        <input type="text" name="u__d" value="{{ !is_null($don->pack) ? $don->pack->reference : null }}" hidden>
+                                                                        <div class="col-md">
+                                                                            <small class="text-light fw-semibold">Dévises disponibles</small>
+                                                                            <div class="form-check mt-1">
+                                                                                <input name="c" class="form-check-input" type="radio" value="usd" id="currency1">
+                                                                                <label class="form-check-label" for="currency1"> USD &dash; Dollar américain </label>
+                                                                            </div>
+                                                                            <div class="form-check">
+                                                                                <input name="c" class="form-check-input" type="radio" value="xof" id="currency2" checked="">
+                                                                                <label class="form-check-label" for="currency2"> Continuer en XOF (FCFA) </label>
+                                                                            </div>
+                                                                        </div>
+                                                                    </form>
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                                                Non
+                                                            </button>
+                                                            <a href="#!" onclick="$('#form-secondGift').submit();" type="button" class="btn btn-primary">Oui, je confirme</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         @endif
                                     </div>
                                 </div>
@@ -118,34 +186,42 @@
 
                             <div class="col col-sm-6">
                                 <div class="card h-100">
-                                    <img class="card-img-top" src="{{Vite::asset('resources/assets/img/elements/3.jpg')}}" alt="Card image cap" />
+                                    <img class="card-img-top" src="{{ !is_null($don->pack) ? load_asset_url($don->pack->image_url) : load_asset_url(null) }}" alt="Card image cap" />
                                     <div class="card-body">
                                         <h6 class="card-title">
+                                            @if (!is_null($don->pack))
                                             {{ $don->pack->label }}
                                             <span class="badge bg-label-success">
-                                                Troisième
-                                            </span>                                            
+                                                troisième
+                                            </span>   
+                                            @else
+                                            <span class="badge bg-label-secondary">pack introuvable</span>
+                                            @endif                                            
                                         </h6>
-                                        <h4 class="card-title">@convert($don->pack->amount) <span class="text-muted">XOF</span> 
+                                        <h4 class="card-title">
+                                            @if (!is_null($don->pack))
+                                            <span class="@if(!is_null($don->thirdDon())){{ $don->secondDon()->is_usd == 1 ? '' : 'text-primary' }}@endif">@convert($don->pack->amount)</span> <span class="text-muted">XOF</span> 
                                             @if (!is_null($don->pack->amount_usd))
-                                            &bullet; @convert($don->pack->amount_usd) <span class="pb-1 mb-4 text-muted">&dollar;</span>
+                                            &bullet; <span class="@if(!is_null($don->thirdDon())) {{ $don->thirdDon()->is_usd == 1 ? 'text-primary' : '' }} @endif">@convert($don->pack->amount_usd)</span> <span class="text-muted">&dollar;</span>
+                                            @endif
+                                            @else
+                                                @if (!is_null($don->thirdDon()))
+                                                @convert($don->thirdDon()->amount) 
+                                                <span class="text-muted"> 
+                                                    @if ($don->thirdDon()->is_usd) &dollar; @else XOF @endif
+                                                </span>
+                                                @else
+                                                <span class="badge bg-label-secondary">introuvable</span>
+                                                @endif
                                             @endif
                                         </h4>
                                         <p class="text-muted">
-                                            @if($don->isCompleted())
-                                                @if (!is_null($don->secondDon()))
-                                                    @if ($don->secondDon()->isCompleted())
-                                                    <span class="badge bg-label-{{ $don->thirdDon()->isCompleted() ? 'success' : 'secondary' }}">{{ $don->thirdDon()->isCompleted() ? 'envoyé' : 'en cours' }}</span> &bullet; 
-                                                    {{ count($don->thirdDon()->fusionsCompleted()) }}/{{ count($don->thirdDon()->fusions) }} association(s) terminée(s)
-                                                    @else
-                                                    <span class="badge bg-label-secondary">En attente de la clôture du deuxième don</span>
-                                                    @endif
-                                                @else
-                                                <span class="badge bg-label-secondary">en attente du deuxième don</span>
-                                                @endif
+                                            @if (!is_null($don->thirdDon()))
+                                            <span class="badge bg-label-{{ $don->thirdDon()->isCompleted() ? 'success' : 'secondary' }}">{{ $don->thirdDon()->isCompleted() ? 'envoyé' : 'en cours' }}</span> &bullet; 
+                                            {{ count($don->thirdDon()->fusionsCompleted()) }}/{{ count($don->thirdDon()->fusions) }} association(s) terminée(s)
                                             @else
-                                            <span class="badge bg-label-secondary">En attente de la clôture du premier don</span>
-                                            @endif
+                                            <span class="badge bg-label-secondary">En attente de don</span>
+                                            @endif 
                                         </p>
                                         <hr>
                                         @if (!is_null($don->thirdDon()))
@@ -153,19 +229,59 @@
                                             <span class="tf-icons bx bx-details"></span>&nbsp; Détails
                                         </a>
                                         @else
-                                            @if (!is_null($don->secondDon()))
-                                                <button type="button" @if($don->isCompleted() && $don->secondDon()->isCompleted()) class="btn btn-primary" onclick="if(confirm('Voulez-vous vraiment faire ce troisième don ?')) {$('#form-suit{{ $don->reference }}').submit();}" style="display: block; width:100%;" @else class="btn btn-secondary"  style="display: block; width:100%; cursor:not-allowed;" @endif>
-                                                    <span class="tf-icons bx bx-rocket"></span> Faire un don
-                                                </button>
-                                                <form id="form-suit{{ $don->reference }}" action="{{ route('gifts.suits.donate.third', $don->reference) }}" method="POST">
-                                                    @csrf
-                                                    <input type="text" name="u__d" value="{{ $don->reference }}" hidden>
-                                                </form>
-                                            @else
-                                                <button type="button"class="btn btn-secondary"  style="display: block; width:100%; cursor:not-allowed;">
-                                                    <span class="tf-icons bx bx-rocket"></span> Faire un don
-                                                </button>
-                                            @endif
+                                            <button type="button" 
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#thirdGiftModal" 
+                                            class="btn btn-primary" 
+                                            style="display: block; width:100%;" 
+                                            >
+                                                <span class="tf-icons bx bx-rocket"></span> Faire un don
+                                            </button>
+                                            <div class="modal fade" id="thirdGiftModal" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-scrollable" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="modalCenterTitle">Devise du don</h5>
+                                                            <button
+                                                                type="button"
+                                                                class="btn-close"
+                                                                data-bs-dismiss="modal"
+                                                                aria-label="Close"
+                                                            ></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="row">
+                                                                <div class="col">                                                                
+                                                                    Veuillez choisir la dévise dans laquelle vous voulez faire le don. <br>
+                                                                    
+                                                                    <form id="form-thirdGift" action="{{ route('gifts.store') }}" class="mt-3" method="POST">
+                                                                        @csrf
+                                                                        <input type="text" name="u__d" value="{{ !is_null($don->pack) ? $don->pack->reference : null }}" hidden>
+                                                                        <div class="col-md">
+                                                                            <small class="text-light fw-semibold">Dévises disponibles</small>
+                                                                            <div class="form-check mt-1">
+                                                                                <input name="c" class="form-check-input" type="radio" value="usd" id="currency1">
+                                                                                <label class="form-check-label" for="currency1"> USD &dash; Dollar américain </label>
+                                                                            </div>
+                                                                            <div class="form-check">
+                                                                                <input name="c" class="form-check-input" type="radio" value="xof" id="currency2" checked="">
+                                                                                <label class="form-check-label" for="currency2"> Continuer en XOF (FCFA) </label>
+                                                                            </div>
+                                                                        </div>
+                                                                    </form>
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                                                Non
+                                                            </button>
+                                                            <a href="#!" onclick="$('#form-thirdGift').submit();" type="button" class="btn btn-primary">Oui, je confirme</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         @endif
                                     </div>
                                 </div>

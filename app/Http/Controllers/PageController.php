@@ -20,6 +20,11 @@ class PageController extends Controller
      */
     public function settingsUser (Request $request)
     {        
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         $edited = 0;
 
         $setting = Setting::where("user_id", auth()->user()->id)->first();
@@ -220,6 +225,11 @@ class PageController extends Controller
      */
     public function settingsApp (Request $request) 
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort_unless(auth()->user()->isTopManager(), 403);
 
         # Loading appSetting
@@ -238,13 +248,23 @@ class PageController extends Controller
             $appSetting->enable_google_auth = 0;
             $appSetting->save();
         }
-        # Notifications
-        if ($request->has('enable_notifications')) {
-            $appSetting->enable_notifications = 1;
-            $appSetting->save();
-        } else {
-            $appSetting->enable_notifications = 0;
-            $appSetting->save();
+        if (auth()->user()->isRoot()) {
+            # Notifications
+            if ($request->has('enable_notifications')) {
+                $appSetting->enable_notifications = 1;
+                $appSetting->save();
+            } else {
+                $appSetting->enable_notifications = 0;
+                $appSetting->save();
+            }
+            # Reward create
+            if ($request->has('enable_reward_add')) {
+                $appSetting->enable_reward_add = 1;
+                $appSetting->save();
+            } else {
+                $appSetting->enable_reward_add = 0;
+                $appSetting->save();
+            }
         }
         # Support
         if ($request->has('enable_support')) {
@@ -407,6 +427,11 @@ class PageController extends Controller
      */
     public function privacy (Request $request)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort_unless(auth()->user()->isTopManager(), 403);  
         if ($request->has('privacy')) {
             if (is_null($request->privacy)) {
@@ -442,6 +467,11 @@ class PageController extends Controller
      */
     public function terms (Request $request)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort_unless(auth()->user()->isTopManager(), 403);  
         if ($request->has('terms')) {
             if (is_null($request->terms)) {
@@ -476,6 +506,11 @@ class PageController extends Controller
      */
     public function support ()
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort_unless(\App\Utils\Utils::appSettings()->enable_support, 404);
         if (is_null(auth()->user()->isBlocked())) {
             alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
@@ -504,6 +539,11 @@ class PageController extends Controller
      */
     public function supportDetails ($reference)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort_unless(\App\Utils\Utils::appSettings()->enable_support, 404);
         if (is_null(auth()->user()->isBlocked())) {
             alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
@@ -524,6 +564,11 @@ class PageController extends Controller
      */
     public function settings ()
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (is_null(auth()->user()->isBlocked())) {
             alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
             return redirect()->back();
@@ -542,6 +587,15 @@ class PageController extends Controller
      */
     public function maintenance ()
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
         return view('pages.maintenance');
+    }
+    
+    public function searchResult ()
+    {
+        
     }
 }

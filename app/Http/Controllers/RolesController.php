@@ -15,6 +15,11 @@ class RolesController extends Controller
      */
     public function index()
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort_unless(auth()->user()->isTopManager(), 404);
         $roles = Role::all();
         if (auth()->user()->isRoot()) {
@@ -44,6 +49,11 @@ class RolesController extends Controller
      */
     public function show(string $reference)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+        
         abort_unless(auth()->user()->isTopManager(), 404);
         $role = Role::where('reference', $reference)->first();
         abort_unless(!is_null($role), 404);

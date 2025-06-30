@@ -12,6 +12,11 @@ class NotificationsController extends Controller
      */
     public function index()
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         return view('pages.notifications.index');
     }
 
@@ -20,6 +25,11 @@ class NotificationsController extends Controller
      */
     public function create()
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (auth()->user()->isPartOfAdmin()) {
             return view('pages.notifications.create');
         }
@@ -31,6 +41,11 @@ class NotificationsController extends Controller
      */
     public function store(Request $request)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (auth()->user()->isPartOfAdmin()) {
             
         }
@@ -42,6 +57,11 @@ class NotificationsController extends Controller
      */
     public function show(string $string)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         return view('pages.notifications.show');
     }
 
@@ -50,6 +70,11 @@ class NotificationsController extends Controller
      */
     public function edit(string $id)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (auth()->user()->isPartOfAdmin()) {
             return view('pages.notifications.edit');
         }
@@ -61,6 +86,11 @@ class NotificationsController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (auth()->user()->isPartOfAdmin()) {
             
         }
@@ -72,6 +102,11 @@ class NotificationsController extends Controller
      */
     public function destroy(string $id)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+        
         if (auth()->user()->isPartOfAdmin()) {
             
         }

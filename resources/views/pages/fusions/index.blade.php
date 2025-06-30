@@ -30,7 +30,7 @@
 
                             @if (auth()->user()->isPartOfAdmin())
                                 @php
-                                    $all = \App\Models\Fusion::all();
+                                    $all = auth()->user()->isRoot() ? \App\Models\Fusion::withTrashed()->get() : \App\Models\Fusion::all();
                                     $pending = [];
                                     foreach ($all as $p) {
                                         if ($p->isCompleted() == false) {

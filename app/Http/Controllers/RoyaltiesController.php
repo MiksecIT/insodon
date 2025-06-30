@@ -17,6 +17,11 @@ class RoyaltiesController extends Controller
      */
     public function index()
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort_unless(\App\Utils\Utils::appSettings()->enable_royalties, 404);
         if (is_null(auth()->user()->isBlocked())) {
             alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
@@ -56,7 +61,7 @@ class RoyaltiesController extends Controller
                 }
                 # Claimed
                 if ($r->isClaimed() && $r->isApprouved() == false && $r->isCompleted() == false) {
-                    array_push($approuved, $r);
+                    array_push($claimed, $r);
                 }
                 # Pending
                 if ($r->isClaimed()== false) {
@@ -89,6 +94,11 @@ class RoyaltiesController extends Controller
      */
     public function show(string $reference)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort_unless(\App\Utils\Utils::appSettings()->enable_royalties, 404);
         $royalty = Royalty::where('reference', $reference)->first();
         abort_unless(!is_null($royalty), 404);
@@ -103,6 +113,11 @@ class RoyaltiesController extends Controller
      */
     public function claim (Request $request)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort_unless(\App\Utils\Utils::appSettings()->enable_royalties, 404);
 
         if (!is_null(\App\Utils\Utils::appSettings()->royalties_threshold) && \App\Utils\Utils::appSettings()->royalties_threshold > 0) {
@@ -113,27 +128,60 @@ class RoyaltiesController extends Controller
             }
 
             if (count(auth()->user()->elligibleRoyalties()) > 0) {
+                $count = 0;
+                # XOF
+                if (count(auth()->user()->elligibleRoyaltiesXOF()) > 0) {
+                    $reward = Reward::create([
+                        "reference" => Utils::generateReference(Reward::all(), Utils::fakeToken(20), 1),
+                        "don_id" => null, 
+                        "source" => "bonus",
+                        "is_usd" => 0,
+                        "user_id" => auth()->user()->id,
+                        "status" => "pending_fusion",
+                        "created_at" => now(),
+                        "updated_at" => now(),
+                    ]);
 
-                $reward = Reward::create([
-                    "reference" => Utils::generateReference(Reward::all(), Utils::fakeToken(20), 1),
-                    "don_id" => null, 
-                    "source" => "bonus",
-                    "user_id" => auth()->user()->id,
-                    "status" => "pending_fusion",
-                    "created_at" => now(),
-                    "updated_at" => now(),
-                ]);
+                    foreach (auth()->user()->elligibleRoyaltiesXOF() as $r) {
+                        # Updating reward amount
+                        $reward->amount += $r->value;
+                        $reward->bonuses = $reward->bonuses.";".$r->id;
+                        $reward->save();
+                        # Linking reward and royalty
+                        $reward->addRoyalty($r);
+                    }
+                    $count +=1;
+                }
+                # USD
+                if (count(auth()->user()->elligibleRoyaltiesUSD()) > 0) {
+                    $rewardr = Reward::create([
+                        "reference" => Utils::generateReference(Reward::all(), Utils::fakeToken(20), 1),
+                        "don_id" => null, 
+                        "source" => "bonus",
+                        "is_usd" => 1,
+                        "user_id" => auth()->user()->id,
+                        "status" => "pending_fusion",
+                        "created_at" => now(),
+                        "updated_at" => now(),
+                    ]);
 
-                foreach (auth()->user()->elligibleRoyalties() as $r) {
-                    # Updating reward amount
-                    $reward->amount += $r->value;
-                    $reward->bonuses = $reward->bonuses.";".$r->id;
-                    $reward->save();
-                    # Linking reward and royalty
-                    $reward->addRoyalty($r);
+                    foreach (auth()->user()->elligibleRoyaltiesUSD() as $r) {
+                        # Updating reward amount
+                        $rewardr->amount += $r->value;
+                        $rewardr->bonuses = $reward->bonuses.";".$r->id;
+                        $rewardr->save();
+                        # Linking reward and royalty
+                        $rewardr->addRoyalty($r);
+                    }
+                    $count +=1;
                 }
 
-                alert()->info('Bravo !',"Vous avez initié la reclamation de ".count(auth()->user()->elligibleRoyalties())." bonus. \n\nVeuillez patienter, votre demande sera validée dans quelques instants.")->persistent();
+                if ($count > 0) {
+                    alert()->info('Bravo !',"Vous avez initié $count demande(s) de reclamation de bonus. \n\nVeuillez patienter, votre demande sera validée dans quelques instants.")->persistent();
+                } else {
+                    toast("Aucune demande soumise", "info");
+                }
+                
                 return redirect()->back();
 
             } else {
@@ -153,11 +201,16 @@ class RoyaltiesController extends Controller
      */
     public function approuve (Request $request)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort_unless(\App\Utils\Utils::appSettings()->enable_royalties, 404);
         abort_unless(auth()->user()->isPartOfAdmin(), 403);
 
         if ($request->has("ack")) {
-            $reward = Reward::where("reference", )->first();
+            $reward = Reward::where("reference", $request->ack)->first();
 
             if (is_null($reward)) {
                 alert()->error('Introuvable',"La demande de reclamation est introuvable")->persistent();
@@ -188,7 +241,7 @@ class RoyaltiesController extends Controller
             $reward->royalties_withdraw_enabled_at = now();
             $reward->save();
 
-            alert()->error('Terminé',"La demande de reclamation a déjà été approuvée avec succès")->persistent();
+            alert()->success('Terminé',"La demande de reclamation a déjà été approuvée avec succès")->persistent();
             return redirect()->back();
 
         } else {

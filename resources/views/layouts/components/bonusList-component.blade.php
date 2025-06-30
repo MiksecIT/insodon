@@ -12,17 +12,39 @@
             </tr>
         </thead>
         <tbody class="table-border-bottom-0">
-            @foreach ($bonus as $bonus)
+            @foreach ($bonus as $bon)
             <tr>
-                <td>{{ $bonus->reference }}</td>
+                <td>{{ $bon->reference }}</td>
                 <td>
-                    @if (!is_null($bonus->reward))
-                        <hr>
-                        <span class="badge bg-label-secondary">recompense</span> <a href="{{ auth()->user()->hasReward($bonus->reward) || auth()->user()->isPartOfAdmin() ? route('rewards.show', $bonus->reward->reference) : "#!" }}"><strong>{{ "#".$bonus->reward->reference }}</strong></a> <br><br>
-                        <span class="tf-icons bx bx-box"></span> <span class="text-muted">&larr;</span> <strong>@convert($bonus->reward->amount)</strong> <span class="text-muted">XOF</span> 
+                    @if (!is_null($bon->reward))
+                        @if ($bon->reward->source == "don")
+                            <span class="badge bg-label-info">#don</span> <br> <br>
+                        @else
+                            <span class="badge bg-label-secondary">source inconnue</span> <br><br>
+                        @endif
+                        <span class="badge bg-label-secondary">recompense</span> <a href="{{ auth()->user()->hasReward($bon->reward) || auth()->user()->isPartOfAdmin() ? route('rewards.show', $bon->reward->reference) : "#!" }}"><strong>{{ "#".$bon->reward->reference }}</strong></a> <br><br>
+                        <span class="tf-icons bx bx-box"></span> <span class="text-muted">&larr;</span> <strong>@convert($bon->reward->amount)</strong> <span class="text-muted">@if($bon->reward->is_usd) &dollar; @else XOF @endif</span> 
                     
-                        @if (auth()->user()->hasReward($bonus->reward) || auth()->user()->isPartOfAdmin())
-                            @if (!is_null($bonus->reward->remaining_amount) && $bonus->reward->remaining_amount > 0) &bullet; <strong>@convert($bonus->reward->remaining_amount)</strong> <span class="pb-1 mb-4 text-muted">restant</span> @endif
+                        @if (auth()->user()->hasReward($bon->reward) || auth()->user()->isPartOfAdmin())
+                            @if (!is_null($bon->reward->remaining_amount) && $bon->reward->remaining_amount > 0) &bullet; <strong>@convert($bon->reward->remaining_amount)</strong> <span class="pb-1 mb-4 text-muted">restant</span> @endif
+                        @endif
+
+                    @else
+                        <span class="badge bg-label-secondary">introuvable</span>
+                    @endif
+
+                    @if (!is_null($bon->withdrawReward))
+                    <hr>
+                        @if ($bon->withdrawReward->source == "bonus")
+                            <span class="badge bg-label-info">#bonus</span> <br> <br>
+                        @else
+                            <span class="badge bg-label-secondary">source inconnue</span> <br><br>
+                        @endif
+                        <span class="badge bg-label-secondary">recompense</span> <a href="{{ auth()->user()->hasReward($bon->withdrawReward) || auth()->user()->isPartOfAdmin() ? route('rewards.show', $bon->withdrawReward->reference) : "#!" }}"><strong>{{ "#".$bon->withdrawReward->reference }}</strong></a> <br><br>
+                        <span class="tf-icons bx bx-box"></span> <span class="text-muted">&larr;</span> <strong>@convert($bon->withdrawReward->amount)</strong> <span class="text-muted">@if($bon->withdrawReward->is_usd) &dollar; @else XOF @endif</span> 
+                    
+                        @if (auth()->user()->hasReward($bon->withdrawReward) || auth()->user()->isPartOfAdmin())
+                            @if (!is_null($bon->withdrawReward->remaining_amount) && $bon->withdrawReward->remaining_amount > 0) &bullet; <strong>@convert($bon->withdrawReward->remaining_amount)</strong> <span class="pb-1 mb-4 text-muted">restant</span> @endif
                         @endif
 
                     @else
@@ -31,69 +53,74 @@
                 
                 </td>
                 <td>
-                    @if (!is_null($bonus->user))
-                    <a href="{{ route('users.show', $bonus->user->reference) }}" style="color: inherit !important;">
-                        <span style="display: inline-block;"><img style="height: 30px; width:30px; margin-right:2px;" src="{{Vite::asset('resources/assets/img/avatars/default.png')}}" alt="Avatar" class="rounded-circle" />{{$bonus->user->name}}</span>
-                        @if (!is_null($bonus->user->country))
-                            @if (!is_null($bonus->user->country->shortern))
-                        <img title="Côte d'ivoire" style="height: 15px; width:15px;" alt="ci" src="{{ Vite::asset('resources/assets/img/countries/'.$bonus->user->country->shortern.'_flag.png') }}">
+                    @if (!is_null($bon->user))
+                    <a href="{{ route('users.show', $bon->user->reference) }}" style="color: inherit !important;">
+                        <span style="display: inline-block;"><img style="height: 30px; width:30px; margin-right:2px;" src="{{Vite::asset('resources/assets/img/avatars/default.png')}}" alt="Avatar" class="rounded-circle" />{{$bon->user->name}}</span>
+                        @if (!is_null($bon->user->country))
+                            @if (!is_null($bon->user->country->shortern))
+                        <img title="Côte d'ivoire" style="height: 15px; width:15px;" alt="ci" src="{{ Vite::asset('resources/assets/img/countries/'.$bon->user->country->shortern.'_flag.png') }}">
                             @endif
                         @endif
                     </a>
                     @endif
 
-                    @if (!is_null($bonus->created_at))
+                    @if (!is_null($bon->created_at))
                     <br><br>
-                    <span class="text-muted">Emis le: {{ $bonus->created_at }}</span>
+                    <span class="text-muted">                        
+                        <span class="tf-icons bx bx-calendar"></span> {{ $bon->created_at }}
+                    </span>
                     @endif
 
                 </td>
                 <td>
-                    @if (!is_null($bonus->target))
-                    <a href="{{ route('users.show', $bonus->target->reference) }}" style="color: inherit !important;">
-                        <span style="display: inline-block;"><img style="height: 30px; width:30px; margin-right:2px;" src="{{Vite::asset('resources/assets/img/avatars/default.png')}}" alt="Avatar" class="rounded-circle" />{{$bonus->target->name}}</span>
-                        @if (!is_null($bonus->target->country))
-                            @if (!is_null($bonus->target->country->shortern))
-                        <img title="Côte d'ivoire" style="height: 15px; width:15px;" alt="ci" src="{{ Vite::asset('resources/assets/img/countries/'.$bonus->target->country->shortern.'_flag.png') }}">
+                    @if (!is_null($bon->targeted))
+                    <a href="{{ route('users.show', $bon->targeted->reference) }}" style="color: inherit !important;">
+                        <span style="display: inline-block;">
+                            <img style="height: 30px; width:30px; margin-right:2px;" src="{{Vite::asset('resources/assets/img/avatars/default.png')}}" alt="Avatar" class="rounded-circle" />
+                            {{$bon->targeted->name}}
+                        </span>
+                        @if (!is_null($bon->targeted->country))
+                            @if (!is_null($bon->targeted->country->shortern))
+                        <img title="Côte d'ivoire" style="height: 15px; width:15px;" alt="ci" src="{{ Vite::asset('resources/assets/img/countries/'.$bon->targeted->country->shortern.'_flag.png') }}">
                             @endif
                         @endif
                     </a>
                     @endif
 
-                    @if (!is_null($bonus->claimed_at))
+                    @if (!is_null($bon->claimed_at))
                     <br><br>
-                    <span class="text-muted">Reclamé le: {{ $bonus->claimed_at }}</span>
+                    <span class="text-muted">Reclamé le: {{ $bon->claimed_at }}</span>
                     @endif
-                    @if (!is_null($bonus->received_at))
-                    <br><br>
-                    <span class="text-muted">Reçu: {{ $bonus->received_at }}</span>
+                    @if (!is_null($bon->received_at))
+                    <br>
+                    <span class="text-muted">Reçu: {{ $bon->received_at }}</span>
                     @endif
                 </td>
-                <td><strong>@convert($bonus->value)</strong> <span class="text-muted">FCFA</span></td>
+                <td><strong>@convert($bon->value)</strong> <span class="text-muted">@if($bon->is_usd) &dollar; @else XOF @endif</span></td>
                 <td>
-                    <span class="badge bg-label-{{ $bonus->isClaimed() ? 'primary' : 'secondary' }} me-1"><span class="tf-icons bx bx-rocket"></span> Envoyé</span> <br><br>
-                    <span class="badge bg-label-{{ $bonus->isApprouved() ? 'primary' : 'secondary' }} me-1"><span class="tf-icons bx bx-link"></span> Approuvé</span> <br><br>
-                    <span class="badge bg-label-{{ $bonus->isCompleted() ? 'success' : 'secondary'}} me-1"><span class="tf-icons bx bx-check"></span> Recupéré</span>
+                    <span class="badge bg-label-{{ $bon->isClaimed() ? 'primary' : 'secondary' }} me-1"><span class="tf-icons bx bx-rocket"></span> Reclamé</span> <br><br>
+                    <span class="badge bg-label-{{ $bon->isApprouved() ? 'primary' : 'secondary' }} me-1"><span class="tf-icons bx bx-link"></span> Approuvé</span> <br><br>
+                    <span class="badge bg-label-{{ $bon->isCompleted() ? 'success' : 'secondary'}} me-1"><span class="tf-icons bx bx-check"></span> Recupéré</span>
                 </td>
                 <td>
-                    @if ($bonus->isCompleted() == false)
-                        @if (auth()->user()->hasGainedRoyalty($bonus) || auth()->user()->isTopManager())
-                            @if ($bonus->isClaimed())
-                                @if ($bonus->isApprouved() == false && auth()->user()->isTopManager())
+                    @if ($bon->isCompleted() == false)
+                        @if (auth()->user()->hasGainedRoyalty($bon) || auth()->user()->isTopManager())
+                            @if ($bon->isClaimed())
+                                @if ($bon->isApprouved() == false && auth()->user()->isTopManager())
                                     <button 
                                         title="Confirmation"
                                         type="button" 
                                         class="btn rounded-pill btn-icon btn-primary"
                                         data-bs-toggle="modal"
-                                        data-bs-target="#confirmAssocModal{{ $bonus->reference.'_'.$view }}">
+                                        data-bs-target="#confirmAssocModal{{ $bon->reference.'_'.$view }}">
                                         <span class="tf-icons bx bx-check"></span>
                                     </button>
-                                    <div class="modal fade" id="confirmAssocModal{{ $bonus->reference.'_'.$view }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal fade" id="confirmAssocModal{{ $bon->reference.'_'.$view }}" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-scrollable" role="document">
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <h5 class="modal-title" id="modalCenterTitle">
-                                                    Approbation de retrait
+                                                    Approbation
                                                 </h5>
                                                 <button
                                                     type="button"
@@ -105,7 +132,9 @@
                                             <div class="modal-body">
                                                 <div class="row">
                                                     <div class="col">
-                                                        Voulez-vous vraiment approuver cette demande de reclamation de bonus ?                                
+                                                        Voulez-vous vraiment approuver cette demande de reclamation de bonus ? 
+                                                        <br><br>
+                                                        NB: Cette action est irréversible.                               
                                                     </div>
                                                 </div>
                                             </div>
@@ -114,10 +143,10 @@
                                                     Fermer
                                                 </button>
 
-                                                <button onclick="$('#form-confirm{{ $bonus->reference }}').submit();" type="button" class="btn btn-primary">Oui, je confirme</button>
-                                                <form id="form-confirm{{ $bonus->reference }}" action="{{ route('bonus.approuve') }}" method="POST">
+                                                <button onclick="$('#form-confirm{{ $bon->reference }}').submit();" type="button" class="btn btn-primary">Oui, je confirme</button>
+                                                <form id="form-confirm{{ $bon->reference }}" action="{{ route('bonus.approuve') }}" method="POST">
                                                     @csrf
-                                                    <input type="text" name="ack" value="{{ $bonus->withdrawReward->reference }}" hidden>
+                                                    <input type="text" name="ack" value="{{ $bon->withdrawReward->reference }}" hidden>
                                                 </form>
 
                                             </div>
@@ -128,16 +157,16 @@
                                 <span class="badge bg-label-secondary me-1">aucune</span>
                                 @endif
                             @else
-                                @if (auth()->user()->hasGainedRoyalty($bonus))
+                                @if (auth()->user()->hasGainedRoyalty($bon))
                                     <button 
                                         title="Reclamer"
                                         type="button" 
                                         class="btn rounded-pill btn-icon btn-primary"
                                         data-bs-toggle="modal"
-                                        data-bs-target="#claimModal{{ $bonus->reference.'_'.$view }}">
+                                        data-bs-target="#claimModal{{ $bon->reference.'_'.$view }}">
                                         <span class="tf-icons bx bx-rocket"></span>
                                     </button>
-                                    <div class="modal fade" id="claimModal{{ $bonus->reference.'_'.$view }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal fade" id="claimModal{{ $bon->reference.'_'.$view }}" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-scrollable" role="document">
                                             <div class="modal-content">
                                                 <div class="modal-header">

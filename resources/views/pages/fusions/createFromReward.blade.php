@@ -107,7 +107,18 @@
                                             <div class="row">
                                                 <div class="col-sm-4">
                                                     <div class="card mb-4">
-                                                        <div class="card-header"><span class="tf-icons bx bx-gift"></span> Recompense</div>
+                                                        <div class="card-header"><span class="tf-icons bx bx-gift"></span> 
+                                                            Recompense
+                                                            @if ($reward->source == "don")
+                                                                <span class="badge bg-label-info">#don</span>
+                                                            @elseif ($reward->source == "bonus")
+                                                                <span class="badge bg-label-info">#bonus</span>
+                                                            @else
+                                                                <span class="badge bg-label-secondary">source inconnue</span>
+                                                            @endif
+                                                            
+                                                            <span class="ml-5 badge bg-label-{{ $reward->isReady() ? 'success' : 'danger'}}">@if($reward->isReady()) mature @else pas encore mature @endif</span>
+                                                        </div>
                                                         <div class="card-body">
                                                             <div class="row">
                                                                 <div class="col-12 mb-3">
@@ -116,12 +127,12 @@
                                                                 </div>
                                                                 <div class="col-12 mb-3">
                                                                     <strong>Montant:</strong> 
-                                                                    @convert($reward->amount) <span class="text-muted">FCFA</span>
+                                                                    @convert($reward->amount) <span class="text-muted">@if ($reward->is_usd) &dollar; @else XOF @endif</span>
                                                                 </div>
                                                                 <div class="col-12 mb-3">
                                                                     <strong>Restant:</strong> 
                                                                     @if (!is_null($reward->remaining_amount))
-                                                                        @convert($reward->remaining_amount) FCFA
+                                                                        @convert($reward->remaining_amount) @if ($reward->is_usd) &dollar; @else XOF @endif
                                                                     @else
                                                                         <span class="badge bg-label-secondary">rien</span>
                                                                     @endif
@@ -151,7 +162,7 @@
                                                                             <img title="Côte d'ivoire" style="height: 15px; width:15px;" alt="ci" src="{{ Vite::asset('resources/assets/img/countries/'.$reward->user->country->shortern.'_flag.png') }}">
                                                                                 @endif
                                                                             @endif
-                                                                            <span class="text-muted">(benificiaire) @if($reward->user->id == auth()->user()->id) <span class="badge bg-label-secondary">Vous</span> @endif</span>
+                                                                            <span class="text-muted">(bénificiaire) @if($reward->user->id == auth()->user()->id) <span class="badge bg-label-secondary">Vous</span> @endif</span>
                                                                         </a>
                                                                     @else
                                                                     <span class="badge bg-label-secondary">introuvable</span>
@@ -168,7 +179,7 @@
                                             <div class="row mb-3">
                                                 <div class="col-sm-12">
                                                     <p>
-                                                        Les suggestions de recompense disponible.
+                                                        Les suggestions de dons disponible.
                                                     </p>
                                                 </div>
                                             </div>
@@ -187,7 +198,7 @@
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     <p>
-                                                        Toutes les recompenses disponible pour le même pays.
+                                                        Tous les dons disponible pour le même pays.
                                                     </p>
                                                 </div>
                                             </div>
@@ -206,7 +217,7 @@
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     <p>
-                                                        Les recompenses disponible dans les autres pays.
+                                                        Les dons disponible dans les autres pays.
                                                     </p>
                                                 </div>
                                             </div>

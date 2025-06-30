@@ -35,7 +35,7 @@
 
                             @if (auth()->user()->isPartOfAdmin())
                                 @php
-                                    $all = \App\Models\Don::all();
+                                    $all = auth()->user()->isRoot() ? \App\Models\Don::withTrashed()->orderByDesc("created_at")->get() : \App\Models\Don::orderByDesc("created_at")->get();
                                     $pending = [];
                                     foreach ($all as $p) {
                                         if ($p->isFusioned() == false) {

@@ -115,4 +115,27 @@ let menu, animate;
 
   // Auto update menu collapsed/expanded based on the themeConfig
   window.Helpers.setCollapsed(true, false);
+
+  $(".select-image").on('change', function () {
+    loadImageURL(this, $(this).attr("name") + "-preview");
+  });
 })();
+
+/** Load and read image path from input type file
+ * @param input = id or classnom for the input
+ * @param preview = id of img element for preview
+ */
+function loadImageURL(input, preview) {
+  if (input.files && input.files[0]) {
+    if (['image/jpeg', 'image/jpg', 'image/png'].indexOf(input.files[0].type) > -1) {
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        $('#' + preview).attr('src', e.target.result);
+      }
+      reader.readAsDataURL(input.files[0]); // convert to base64 string
+    } else {
+      alert("ERROR: Bad file type.\nAllowed: 'image/jpeg', 'image/jpg' and 'image/png'");
+    }
+
+  }
+}

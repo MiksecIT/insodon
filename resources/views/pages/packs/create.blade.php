@@ -32,7 +32,7 @@
                                     <div class="col-md-8">
                                         <p>Détails du pack</p>                                 
                                         <div>
-                                            <form id="formAccountSettings" method="POST" action="{{ route('packs.store') }}">
+                                            <form id="formAccountSettings" method="POST" action="{{ route('packs.store') }}" enctype="multipart/form-data">
                                                 @csrf
                                                 <div class="row">
                                                     <div class="mb-3 col-md-12">
@@ -78,12 +78,12 @@
                                                     <div class="mb-3 col-md-12">
                                                         <label class="form-label" for="description">Description</label>
                                                         <div class="input-group input-group-merge">
-                                                            <textarea class="form-control" name="description" style="width: 100% !important; height:100%;" id="editorPacks" placeholder="Description du pack...">{!! old('description') !!}</textarea>
+                                                            <textarea class="form-control" name="description" id="editorPacks" placeholder="Description du pack...">{!! old('description') !!}</textarea>
                                                         </div>
                                                     </div>
                                                     <div class="mb-3 col-md-12">
                                                         <label for="image" class="form-label">Choisir une image <span class="text-muted">(500x500 de préférence)</span></label>
-                                                        <input class="form-control" type="file" name="image" id="image" accept="image/png, image/jpg, image/jpeg">
+                                                        <input class="form-control select-image" type="file" name="image" id="image" accept="image/png, image/jpg, image/jpeg">
                                                     </div>
                                                     <div class="mb-3 col-12">
                                                         <div class="form-check">
@@ -103,8 +103,8 @@
                                     </div>
                                     <div class="col-md-4">
                                         <p class="text-muted">*Visualsation de l'image</p>                                 
-                                        <div>
-                                            
+                                        <div class="image-preview">
+                                            <img src="{{ load_asset_url(null) }}" id="image-preview" alt="">
                                         </div>
                                     </div>
                                 </div>

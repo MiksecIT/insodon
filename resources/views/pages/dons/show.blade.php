@@ -101,7 +101,15 @@
                                                                     <strong>Pack:</strong> 
                                                                     @if (!is_null($don->pack))
                                                                     <a href="{{ auth()->user()->isPartOfAdmin() ? route('packs.show', $don->pack->reference) : '#!' }}">
-                                                                        {{ $don->pack->label }} <span class="text-muted">(@convert($don->pack->amount) FCFA)</span>
+                                                                        {{ $don->pack->label }} 
+                                                                        <span class="text-muted">
+                                                                            (@if($don->is_usd) 
+                                                                                @convert($don->pack->amount_usd) 
+                                                                            @else 
+                                                                                @convert($don->pack->amount) 
+                                                                            @endif 
+                                                                            @if($don->is_usd) &dollar; @else XOF @endif)
+                                                                        </span>
                                                                     </a>
                                                                     @else
                                                                     <span class="badge bg-label-secondary">introuvable</span>
@@ -110,7 +118,7 @@
                                                                 <div class="col-12  mb-3">
                                                                     <strong>Montant restant:</strong> 
                                                                     @if (!is_null($don->remaining_amount) && $don->remaining_amount > 0)
-                                                                    @convert($don->remaining_amount) <span class="text-muted">FCFA</span>
+                                                                    @convert($don->remaining_amount) <span class="text-muted">@if($don->is_usd) &dollar; @else XOF @endif</span>
                                                                     @else
                                                                     <span class="badge bg-label-secondary">rien</span>
                                                                     @endif
@@ -166,7 +174,16 @@
                                                 </div>
                                                 <div class="col-sm-4">
                                                     <div class="card">
-                                                        <div class="card-header"><span class="tf-icons bx bx-box"></span> Recompense @if(!is_null($don->reward))<span class="badge bg-label-{{ $don->reward->isReady() ? 'success' : 'danger'}}">@if($don->reward->isReady()) mature @else pas encore mature @endif</span> @endif</div>
+                                                        <div class="card-header"><span class="tf-icons bx bx-box"></span> Recompense 
+                                                            @if ($don->reward->source == "don")
+                                                                <span class="badge bg-label-info">#don</span>
+                                                            @elseif ($don->reward->source == "bonus")
+                                                                <span class="badge bg-label-info">#bonus</span>
+                                                            @else
+                                                                <span class="badge bg-label-secondary">source inconnue</span>
+                                                            @endif
+                                                            @if(!is_null($don->reward))<span class="badge bg-label-{{ $don->reward->isReady() ? 'success' : 'danger'}}">@if($don->reward->isReady()) mature @else pas encore mature @endif</span> @endif
+                                                        </div>
                                                         <div class="card-body">
                                                             @if(!is_null($don->reward))
                                                             <div class="row">

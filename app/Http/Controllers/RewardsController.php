@@ -14,24 +14,18 @@ class RewardsController extends Controller
 {
     public function __construct()
     {
-        if (\App\Utils\Utils::appSettings()->enable_maintenance) {
-            $block = true;
-            if (\Auth::check()) {
-                if (auth()->user()->isPartOfAdmin()) {
-                    $block = false;
-                }
-            }
 
-            if ($block) {
-                return redirect()->route("app.maintenance");
-            } 
-        }
     }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         $rewards = [];
         if (auth()->user()->isPartOfAdmin()) {
             $rewards = Reward::all();
@@ -52,6 +46,11 @@ class RewardsController extends Controller
      */
     public function create()
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort(404);
     }
 
@@ -60,6 +59,11 @@ class RewardsController extends Controller
      */
     public function store(Request $request)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         abort(404);
     }
 
@@ -68,6 +72,11 @@ class RewardsController extends Controller
      */
     public function show(string $reference)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         $reward = Reward::where('reference', $reference)->first();
         abort_unless(!is_null($reward), 404);
         if (auth()->user()->hasReward($reward) || auth()->user()->isPartOfAdmin()) {
@@ -80,6 +89,11 @@ class RewardsController extends Controller
      */
     public function edit(string $reference)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (auth()->user()->isTopManager()) {
             $reward = Reward::where('reference', $reference)->first();
             abort_unless(!is_null($reward), 404);
@@ -93,6 +107,11 @@ class RewardsController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
         if (auth()->user()->isTopManager()) {
             
         }
@@ -104,21 +123,31 @@ class RewardsController extends Controller
      */
     public function destroy(string $id)
     {
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+        
         if (auth()->user()->isTopManager()) {
-            $reward = Reward::find($id);
+            $reward = auth()->user()->isRoot() ? Reward::withTrashed()->find($id) : Reward::find($id);
             abort_unless(!is_null($reward), 404);
-            if (count($reward->fusions) == 0) {
-                if (is_null($reward->deleted_at)) {
-                    $reward->delete();
-                    toast("Récompense supprimée avec succès", "success");
-                } else {
-                    if (auth()->user()->isRoot()) {
-                        $reward->forceDelete();
-                        toast("Récompense supprimée definitivement avec succès", "success");
+            if ($reward->isInitiale() == false) {
+                alert()->error("Suppression impossible", "Cette recompense n'est pas INITIALE.")->persistent();
+            }
+            else {
+                if (count($reward->fusions) == 0) {
+                    if (is_null($reward->deleted_at)) {
+                        $reward->delete();
+                        toast("Récompense supprimée avec succès", "success");
+                    } else {
+                        if (auth()->user()->isRoot()) {
+                            $reward->forceDelete();
+                            toast("Récompense supprimée definitivement avec succès", "success");
+                        }
                     }
+                } else {
+                    alert()->error("Suppression impossible", "Cette recompense a déjà ".count($reward->fusions)." association(s).")->persistent();
                 }
-            } else {
-                alert()->error("Modification impossible", "Cette recompense a déjà ".count($reward->fusions)." association(s).")->persistent();
             }
             return redirect()->route('rewards.index');
         }

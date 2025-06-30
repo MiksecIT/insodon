@@ -28,7 +28,7 @@ class Royalty extends Model
      *
      * @return void
      */
-    public function target ()
+    public function targeted ()
     {
         return $this->belongsTo(User::class, "target");
     }
@@ -60,8 +60,8 @@ class Royalty extends Model
      */
     public function isApprouved ()
     {
-        if (!is_null($this->withdrawReward())) {
-            return  $this->withdrawReward()->isApprouvedForBonus();
+        if (!is_null($this->withdrawReward)) {
+            return  $this->withdrawReward->isApprouvedForBonus();
         } return false;
     }
 
