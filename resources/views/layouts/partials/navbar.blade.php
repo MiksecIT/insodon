@@ -85,7 +85,7 @@
                       </a>
                     </li>
 
-                    @if(\App\Utils\Utils::appSettings()->enable_notifications)
+                    @if(\App\Utils\Utils::appSettings()->enable_notifications && 1==2)
                     <li>
                       <a class="dropdown-item" href="{{ route('notifications.index') }}">
                         <span class="d-flex align-items-center align-middle">
