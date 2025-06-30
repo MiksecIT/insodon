@@ -147,7 +147,7 @@
               @endif
             @endif
 
-            @if (\App\Utils\Utils::appSettings()->enable_notifications)
+            @if (\App\Utils\Utils::appSettings()->enable_notifications && 1 == 2)
             <li class="menu-item {{ Route::is('notifications*') ? 'active' : ''}}">
               <a href="{{ route('notifications.index') }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-bell"></i>

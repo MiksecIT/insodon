@@ -12,6 +12,8 @@ class NotificationsController extends Controller
      */
     public function index()
     {
+        abort(404);
+        
         if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
             alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
             return redirect()->back();
@@ -25,6 +27,8 @@ class NotificationsController extends Controller
      */
     public function create()
     {
+        abort(404);
+
         if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
             alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
             return redirect()->back();
@@ -41,6 +45,8 @@ class NotificationsController extends Controller
      */
     public function store(Request $request)
     {
+        abort(404);
+
         if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
             alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
             return redirect()->back();
@@ -57,6 +63,8 @@ class NotificationsController extends Controller
      */
     public function show(string $string)
     {
+        abort(404);
+
         if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
             alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
             return redirect()->back();
@@ -70,6 +78,8 @@ class NotificationsController extends Controller
      */
     public function edit(string $id)
     {
+        abort(404);
+
         if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
             alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
             return redirect()->back();
@@ -86,6 +96,8 @@ class NotificationsController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        abort(404);
+
         if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
             alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
             return redirect()->back();
@@ -102,11 +114,13 @@ class NotificationsController extends Controller
      */
     public function destroy(string $id)
     {
+        abort(404);
+
         if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
             alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
             return redirect()->back();
         }
-        
+
         if (auth()->user()->isPartOfAdmin()) {
             
         }
