@@ -39,9 +39,9 @@
                     @include("layouts.components.usersBubbles-component", ["users" => $role->users , "limit" => 10])
                 </td>
                 <td>
-                    <button type="button" class="btn rounded-pill btn-icon btn-outline-primary">
+                    <a href="{{ route('roles.show', $role->reference) }}" type="button" class="btn rounded-pill btn-icon btn-outline-primary">
                         <span class="tf-icons bx bx-detail"></span>
-                    </button>
+                    </a>
                 </td>
             </tr>
             @endif

@@ -14,7 +14,7 @@
             @foreach ($users as $user)
 
             @php
-            
+
                 $show = false;
 
                 $user->initSetting();
@@ -72,7 +72,14 @@
                 <td>
                     <a title="Voir les détails" href="{{ route('users.show', $user->reference) }}" type="button" class="btn rounded-pill btn-icon btn-outline-primary">
                         <span class="tf-icons bx bx-detail"></span>
-                    </a>                    
+                    </a>
+                    
+                    @if (auth()->user()->isPartOfAdmin())
+                    <a title="Modifier" href="{{ route('users.edit', $user->reference) }}" type="button" class="btn rounded-pill btn-icon btn-outline-primary">
+                        <span class="tf-icons bx bx-edit"></span>
+                    </a>
+                    @endif
+                                       
                 </td>
             </tr>
             @endif

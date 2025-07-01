@@ -18,9 +18,22 @@
             <li class="menu-item">
               <a href="#!" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-group"></i>
-                <div data-i18n="Authentications">Membres <span class="badge bg-label-primary">{{ number_format(count(\App\Models\User::all()) + 350) }}</span></div>
+                <div data-i18n="Authentications">Membres <span class="badge bg-label-primary">{{ number_format(count(\App\Models\User::all()) + 471) }}</span></div>
               </a>
             </li>
+
+            @php
+              $jj = "2025-07-03 10:10:10";
+            @endphp
+            @if (\Carbon\Carbon::parse($jj) > now())
+            <li class="menu-item">
+              <a href="#!" class="menu-link bg-label-warning">
+                <i class="menu-icon tf-icons bx bx-timer"></i>
+                <div data-i18n="Authentications">Lancement dans <strong class="text-primary">JJ &dash; {{ \Carbon\Carbon::parse($jj)->diffInDays(now()) +1 }}</strong></div>
+              </a>
+            </li>
+            @endif
+
             <li class="menu-header small text-uppercase">
               <span class="menu-header-text">Menu</span>
             </li>
@@ -181,7 +194,7 @@
                 type="button" 
                 data-bs-toggle="modal"
                 data-bs-target="#searchModal"
-                class="menu-link">
+                class="menu-link bg-label-secondary">
                 <i class="menu-icon tf-icons bx bx-search"></i>
                 <div data-i18n="Boxicons">Recherche</div>
               </a>              

@@ -22,7 +22,12 @@
                         <div class="row">
                             <div class="col-md-8">
                                 <h4 class="fw-bold py-3">Nouvel utilisateur</h4>
-                                <p class="text-muted">Ajouter un utilisateur</p>
+                                <p class="text-muted">
+                                    @if (auth()->user()->isPartOfAdmin())
+                                    <a href="{{ route('users.index') }}"><span class="tf-icons bx bx-group"></span> Liste des utilisateurs</a>
+                                    @endif
+                                    &bullet; Ajouter un utilisateur
+                                </p>
                             </div>
                         </div>
 
