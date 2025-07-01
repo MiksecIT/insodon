@@ -1051,6 +1051,7 @@ class FusionsController extends Controller
             abort_unless(!is_null($fusion), 404);
             if ($fusion->isSent() == false && $fusion->isReceived() == false) {
                 if (is_null($fusion->deleted_at)) {
+                    #TODO: Update related don and reward before deleting...
                     $fusion->delete();
                     toast("Association supprimée avec succès", "success");
                 } else {

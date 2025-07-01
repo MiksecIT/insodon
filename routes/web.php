@@ -46,9 +46,10 @@ Route::group(['namespace' => 'App\\Http\\Controllers'], function(){
     Route::post('settings/app', 'PageController@settingsApp')->name('app.settings.app')->middleware('auth');
 
     Route::post('search', 'PageController@search')->name('app.search.init')->middleware('auth');
-    Route::get('search', 'PageController@searchResult')->name('app.search.result')->middleware('auth');
 
     Route::resource('chats', 'ChatsController')->middleware('auth');
+
+    Route::resource('countries', 'CountriesController')->middleware('auth');
 
     Route::resource('notifications', 'NotificationsController')->middleware('auth');
     

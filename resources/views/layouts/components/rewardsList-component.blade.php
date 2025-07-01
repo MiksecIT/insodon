@@ -151,28 +151,8 @@
                 </td>
                 <td>
                     
-                    @if (count($reward->senders()) > 0)
-                    {{ count($reward->senders()) }} au total <br>
-                    <ul class="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
-                        @foreach ($reward->senders() as $u)
-                        
-                        <li
-                        data-bs-toggle="tooltip"
-                        data-popup="tooltip-custom"
-                        data-bs-placement="top"
-                        class="avatar avatar-xs pull-up"
-                        title="{{ $u->name }}{{ $u->id == auth()->user()->id ? " (Vous)" : "" }}"
-                        >
-                            <a href="{{ route('users.show', $u->reference) }}">
-                                <img src="{{Vite::asset('resources/assets/img/avatars/default.png')}}" alt="Avatar" class="rounded-circle" />
-                            </a>
-                        </li>
+                    @include("layouts.components.usersBubbles-component", ["users" => $reward->senders() , "limit" => 10])
 
-                        @endforeach
-                    </ul>
-                    @else
-                    <span class="badge bg-label-secondary">pas encore</span>
-                    @endif
                 </td>
                 <td><strong>@convert($reward->remaining_amount)</strong> <span class="text-muted">@if($reward->is_usd) &dollar; @else XOF @endif</span></td>
                 <td>

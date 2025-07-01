@@ -122,28 +122,8 @@
                 </td>
                 <td>
                     
-                    @if (count($don->receivers()) > 0)
-                    {{ count($don->receivers()) }} au total <br>
-                    <ul class="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
-                        @foreach ($don->receivers() as $u)
-                        
-                        <li
-                        data-bs-toggle="tooltip"
-                        data-popup="tooltip-custom"
-                        data-bs-placement="top"
-                        class="avatar avatar-xs pull-up"
-                        title="{{ $u->name }}{{ $u->id == auth()->user()->id ? " (Vous)" : "" }}"
-                        >
-                            <a href="{{ route('users.show', $u->reference) }}">
-                                <img src="{{Vite::asset('resources/assets/img/avatars/default.png')}}" alt="Avatar" class="rounded-circle" />
-                            </a>
-                        </li>
+                    @include("layouts.components.usersBubbles-component", ["users" => $don->receivers() , "limit" => 10])
 
-                        @endforeach
-                    </ul>
-                    @else
-                    <span class="badge bg-label-secondary">pas encore</span>
-                    @endif
                 </td>
                 <td>
                     <strong>@if($don->isCompleted())@convert(0) @else @convert($don->remaining_amount)@endif</strong> <span class="text-muted">@if($don->is_usd) &dollar; @else XOF @endif</span></td>

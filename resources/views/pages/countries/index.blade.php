@@ -1,7 +1,7 @@
 @extends('layouts.master')
 
 @section('title')
-    Rôles - Liste
+    Pays - Liste
 @endsection
 
 @section('content')
@@ -21,9 +21,17 @@
                         
                         <div class="row">
                             <div class="col-md-8">
-                                <h4 class="fw-bold py-3">Dons</h4>
-                                <p class="text-muted">Liste des roles utilisateurs</p>
+                                <h4 class="fw-bold py-3">Pays</h4>
+                                <p class="text-muted">Liste des pays disponible</p>
                             </div>
+
+                            @if (auth()->user()->isPartOfAdmin())
+                            <div class="col-md-4" style="text-align: right !important;">
+                                <a href="{{ route('countries.create') }}" type="button" class="btn btn-outline-primary">
+                                    <span class="tf-icons bx bx-plus"></span>&nbsp; Ajouter
+                                </a>
+                            </div>
+                            @endif
                         </div>
 
                         <div class="row">
@@ -31,13 +39,16 @@
                                 @include('layouts.partials.session')
                             </div>
                         </div>
-                        
+
                         <div class="card">
                             <div class="card-body">
-                                @include('layouts.components.rolesList-component', ["roles" => $roles])
+                                @if (count($countries) >0)
+                                @include("layouts.components.countriesList-component", ["countries" => $countries])
+                                @else
+                                <div class="badge bg-label-secondary">Pas disponible</div>
+                                @endif
                             </div>
                         </div>
-
                     </div>
                     
                     @include('layouts.partials.footer')

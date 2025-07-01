@@ -488,17 +488,7 @@ class User extends Authenticatable
      */
     public function elligibleRoyalties ()
     {
-        $array = [];
-        $amount = 0;
-        if (count($this->gainedRoyalties) > 0) {
-            foreach ($this->gainedRoyalties as $r) {
-                if ($r->isClaimed() == false && $r->isReceived() == false && $r->value > 0 && !is_null($r->value)) {
-                    $amount += $r->value;
-                    array_push($array, $r);
-                }
-            }
-        }
-        return $amount >= \App\Utils\Utils::appSettings()->royalties_threshold ? $array : [];
+        return array_merge($this->elligibleRoyaltiesXOF(), $this->elligibleRoyaltiesUSD());
     }
 
     /**
@@ -509,14 +499,16 @@ class User extends Authenticatable
     public function elligibleRoyaltiesXOF ()
     {
         $array = [];
-        if (count($this->elligibleRoyalties())) {
-            foreach ($this->elligibleRoyalties() as $e) {
-                if ($e->is_usd == 0) {
-                    array_push($array, $e);
+        $amount = 0;
+        if (count($this->gainedRoyalties) > 0) {
+            foreach ($this->gainedRoyalties as $r) {
+                if ($r->is_usd == 0 && $r->isClaimed() == false && $r->isReceived() == false && $r->value > 0 && !is_null($r->value)) {
+                    $amount += $r->value;
+                    array_push($array, $r);
                 }
             }
         }
-        return $array;
+        return $amount >= \App\Utils\Utils::appSettings()->royalties_threshold ? $array : [];
     }
 
     /**
@@ -527,14 +519,16 @@ class User extends Authenticatable
     public function elligibleRoyaltiesUSD ()
     {
         $array = [];
-        if (count($this->elligibleRoyalties())) {
-            foreach ($this->elligibleRoyalties() as $e) {
-                if ($e->is_usd) {
-                    array_push($array, $e);
+        $amount = 0;
+        if (count($this->gainedRoyalties) > 0) {
+            foreach ($this->gainedRoyalties as $r) {
+                if ($r->is_usd && $r->isClaimed() == false && $r->isReceived() == false && $r->value > 0 && !is_null($r->value)) {
+                    $amount += $r->value;
+                    array_push($array, $r);
                 }
             }
         }
-        return $array;
+        return $amount >= \App\Utils\Utils::appSettings()->royalties_threshold_usd ? $array : [];
     }
 
     /**

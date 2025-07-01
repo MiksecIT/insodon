@@ -27,9 +27,9 @@
     "file": "assets/bf_flag-80-OE-aa.png",
     "src": "resources/assets/img/countries/bf_flag.png"
   },
-  "resources/assets/img/countries/bj_flag.png": {
-    "file": "assets/bj_flag-rCcenmk1.png",
-    "src": "resources/assets/img/countries/bj_flag.png"
+  "resources/assets/img/countries/bn_flag.png": {
+    "file": "assets/bn_flag-rCcenmk1.png",
+    "src": "resources/assets/img/countries/bn_flag.png"
   },
   "resources/assets/img/countries/cd_flag.png": {
     "file": "assets/cd_flag-ocGoFCIC.png",
@@ -154,6 +154,10 @@
   "resources/assets/img/favicon/favicon.ico": {
     "file": "assets/favicon-vAaD3K2N.ico",
     "src": "resources/assets/img/favicon/favicon.ico"
+  },
+  "resources/assets/img/favicon/logo.jpg": {
+    "file": "assets/logo-ChfR_LlM.jpg",
+    "src": "resources/assets/img/favicon/logo.jpg"
   },
   "resources/assets/img/icons/brands/asana.png": {
     "file": "assets/asana-Cqjmuo9M.png",

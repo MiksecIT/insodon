@@ -311,7 +311,7 @@ class PacksController extends Controller
         }
         
         if (auth()->user()->isTopManager()) {
-            $pack = Pack::find($id);
+            $pack = auth()->user()->isRoot() ? Pack::withTrashed()->where('id', $id)->first() : Pack::find($id);
             abort_unless(!is_null($pack), 404);
             if (count($pack->dons) == 0) {
                 if (is_null($pack->deleted_at)) {

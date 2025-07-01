@@ -108,7 +108,7 @@ class DonsController extends Controller
             }   
 
             $reward = Reward::create([
-                "reference" => \App\Utils\Utils::generateReference(Reward::all(), \App\Utils\Utils::fakeToken(10), 1),
+                "reference" => \App\Utils\Utils::generateReference(Reward::all(), \App\Utils\Utils::fakeToken(20), 1),
                 "don_id" => null, 
                 "source" => "don",
                 "user_id" => $receiver->id,

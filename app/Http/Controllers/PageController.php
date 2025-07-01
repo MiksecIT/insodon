@@ -358,11 +358,24 @@ class PageController extends Controller
                     $appSetting->royalties_threshold = $request->royalties_threshold;
                     $appSetting->save();
                 } else {
-                    alert()->error("Bonus activé", "Veuillez spécifier le seuil de reclamation des bonus")->persistent();
+                    alert()->error("Bonus activé", "Veuillez spécifier le seuil XOF de reclamation des bonus")->persistent();
                     return redirect()->back();
                 }
             } else {
-                alert()->error("Bonus activé", "Veuillez spécifier le seuil de reclamation des bonus")->persistent();
+                alert()->error("Bonus activé", "Veuillez spécifier le seuil XOF de reclamation des bonus")->persistent();
+                return redirect()->back();
+            }
+
+            if ($request->has('royalties_threshold_usd')) {
+                if (!is_null($request->royalties_threshold_usd) && $request->royalties_threshold > 0 && $request->royalties_threshold_usd != "") {
+                    $appSetting->royalties_threshold_usd = $request->royalties_threshold_usd;
+                    $appSetting->save();
+                } else {
+                    alert()->error("Bonus activé", "Veuillez spécifier le seuil USD de reclamation des bonus")->persistent();
+                    return redirect()->back();
+                }
+            } else {
+                alert()->error("Bonus activé", "Veuillez spécifier le seuil USD de reclamation des bonus")->persistent();
                 return redirect()->back();
             }
 
@@ -594,8 +607,67 @@ class PageController extends Controller
         return view('pages.maintenance');
     }
     
-    public function searchResult ()
+    /**
+     * Peforms a research
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function search (Request $request)
     {
-        
+        if (\App\Utils\Utils::appSettings()->enable_suspension && auth()->user()->isBlocked()) {
+            alert()->error("Compte suspendu", "Votre compte a été suspendu")->persistent();
+            return redirect()->back();
+        }
+
+        if ($request->has('s') && $request->has('c')) {
+            if (!is_null($request->s) && in_array($request->c, ["users", "gifts", "rewards", "associations", "bonus"])) {
+                $record = null;
+                if ($request->c == "users" && auth()->user()->isPartOfAdmin()) {
+                    $record = \App\Models\User::where("reference", $request->s)->first();
+                    if (!is_null($record)) {
+                        toast("Resultats de la recherche", "info");
+                        return redirect()->route('users.show', $record->reference);
+                    }
+                }
+
+                if ($request->c == "gifts") {
+                    $record = \App\Models\Don::where("reference", $request->s)->first();
+                    if (!is_null($record)) {
+                        toast("Resultats de la recherche", "info");
+                        return redirect()->route('gifts.show', $record->reference);
+                    }
+                }
+
+                if ($request->c == "rewards") {
+                    $record = \App\Models\Reward::where("reference", $request->s)->first();
+                    if (!is_null($record)) {
+                        toast("Resultats de la recherche", "info");
+                        return redirect()->route('rewards.show', $record->reference);
+                    }
+                }
+
+                if ($request->c == "associations") {
+                    $record = \App\Models\Fusion::where("reference", $request->s)->first();
+                    if (!is_null($record)) {
+                        toast("Resultats de la recherche", "info");
+                        return redirect()->route('associations.show', $record->reference);
+                    }
+                }
+
+                if ($request->c == "gifts") {
+                    $record = \App\Models\Royalty::where("reference", $request->s)->first();
+                    if (!is_null($record)) {
+                        toast("Resultats de la recherche", "info");
+                        return redirect()->route('bonus.show', $record->reference);
+                    }
+                }
+            }
+            alert()->info("Vide", "Aucune correspondance trouvé")->persistent();
+            return redirect()->back(); 
+        } else {
+            alert()->error("Erreur", "Un ou plusieurs champs sont manquants.")->persistent();
+            return redirect()->back();
+        }
     }
 }

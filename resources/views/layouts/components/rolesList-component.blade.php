@@ -36,27 +36,7 @@
                 {{-- <td>{{ $role->reference }}</td> --}}
                 <td>{{ $role->label }}</td>
                 <td>
-                    {{ count($role->users) }} au total <br>
-                    @if (count($role->users) > 0)
-                    <ul class="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
-                        @foreach ($role->users as $u)
-                            
-                        
-                        <li
-                        data-bs-toggle="tooltip"
-                        data-popup="tooltip-custom"
-                        data-bs-placement="top"
-                        class="avatar avatar-xs pull-up"
-                        title="{{ $u->name }}"
-                        >
-                            <a href="{{ route('users.show', $u->reference) }}">
-                                <img src="{{Vite::asset('resources/assets/img/avatars/default.png')}}" alt="Avatar" class="rounded-circle" />
-                            </a>
-                        </li>
-
-                        @endforeach
-                    </ul>
-                    @endif
+                    @include("layouts.components.usersBubbles-component", ["users" => $role->users , "limit" => 10])
                 </td>
                 <td>
                     <button type="button" class="btn rounded-pill btn-icon btn-outline-primary">

@@ -175,12 +175,14 @@
                                                 <div class="col-sm-4">
                                                     <div class="card">
                                                         <div class="card-header"><span class="tf-icons bx bx-box"></span> Recompense 
-                                                            @if ($don->reward->source == "don")
-                                                                <span class="badge bg-label-info">#don</span>
-                                                            @elseif ($don->reward->source == "bonus")
-                                                                <span class="badge bg-label-info">#bonus</span>
-                                                            @else
-                                                                <span class="badge bg-label-secondary">source inconnue</span>
+                                                            @if (!is_null($don->reward))
+                                                                @if ($don->reward->source == "don")
+                                                                    <span class="badge bg-label-info">#don</span>
+                                                                @elseif ($don->reward->source == "bonus")
+                                                                    <span class="badge bg-label-info">#bonus</span>
+                                                                @else
+                                                                    <span class="badge bg-label-secondary">source inconnue</span>
+                                                                @endif
                                                             @endif
                                                             @if(!is_null($don->reward))<span class="badge bg-label-{{ $don->reward->isReady() ? 'success' : 'danger'}}">@if($don->reward->isReady()) mature @else pas encore mature @endif</span> @endif
                                                         </div>

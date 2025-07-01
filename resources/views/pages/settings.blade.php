@@ -601,9 +601,18 @@
                                                                 <div class="d-flex mb-3">
                                                                     <div class="flex-grow-1 row">
                                                                         <div class="col mb-sm-0 mb-2">
-                                                                            <h6 class="mb-0">Seuil</h6>
-                                                                            <small class="text-muted">Seuil à atteindre avant de reclamer</small>
-                                                                            <input class="form-control" type="text" value="{{ \App\Utils\Utils::appSettings()->royalties_threshold }}" name="royalties_threshold" placeholder="Seuil">
+                                                                            <h6 class="mb-0">Seuil XOF (FCFA)</h6>
+                                                                            <small class="text-muted">Seuil en XOF (FCFA) à atteindre avant de reclamer</small>
+                                                                            <input class="form-control" type="text" value="{{ \App\Utils\Utils::appSettings()->royalties_threshold }}" name="royalties_threshold" placeholder="Seuil en XOF">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="d-flex mb-3">
+                                                                    <div class="flex-grow-1 row">
+                                                                        <div class="col mb-sm-0 mb-2">
+                                                                            <h6 class="mb-0">Seuil USD (&dollar;)</h6>
+                                                                            <small class="text-muted">Seuil en USD (&dollar;) à atteindre avant de reclamer</small>
+                                                                            <input class="form-control" type="text" value="{{ \App\Utils\Utils::appSettings()->royalties_threshold_usd }}" name="royalties_threshold_usd" placeholder="Seuil en USD">
                                                                         </div>
                                                                     </div>
                                                                 </div>

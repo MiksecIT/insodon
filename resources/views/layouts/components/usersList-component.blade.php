@@ -63,13 +63,7 @@
                     {{ count($user->rewards) }}
                 </td>
                 <td>                    
-                    @if (count($user->affiliates) > 0)
-                        <span class="badge bg-label-primary">
-                            {{ count($user->affiliates) }} <span class="tf-icons bx bx-group"></span> 
-                        </span>
-                    @else
-                    <span class="badge bg-label-secondary">pas encore</span>
-                    @endif
+                    @include("layouts.components.usersBubbles-component", ["users" => $user->affiliates , "limit" => 10])
                 </td>
                 <td>
                     <a title="Voir les détails" href="{{ route('users.show', $user->reference) }}" type="button" class="btn rounded-pill btn-icon btn-outline-primary">
