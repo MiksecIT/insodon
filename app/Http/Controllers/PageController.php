@@ -634,24 +634,30 @@ class PageController extends Controller
                 if ($request->c == "gifts") {
                     $record = \App\Models\Don::where("reference", $request->s)->first();
                     if (!is_null($record)) {
-                        toast("Resultats de la recherche", "info");
-                        return redirect()->route('gifts.show', $record->reference);
+                        if (auth()->user()->hasDon($record) || auth()->user()->isPartOfAdmin()) {
+                            toast("Resultats de la recherche", "info");
+                            return redirect()->route('gifts.show', $record->reference);
+                        }
                     }
                 }
 
                 if ($request->c == "rewards") {
                     $record = \App\Models\Reward::where("reference", $request->s)->first();
                     if (!is_null($record)) {
-                        toast("Resultats de la recherche", "info");
-                        return redirect()->route('rewards.show', $record->reference);
+                        if (auth()->user()->hasReward($record) || auth()->user()->isPartOfAdmin()) {
+                            toast("Resultats de la recherche", "info");
+                            return redirect()->route('rewards.show', $record->reference);
+                        }
                     }
                 }
 
                 if ($request->c == "associations") {
                     $record = \App\Models\Fusion::where("reference", $request->s)->first();
                     if (!is_null($record)) {
-                        toast("Resultats de la recherche", "info");
-                        return redirect()->route('associations.index');
+                        if (auth()->user()->hasFusion($record) || auth()->user()->isPartOfAdmin()) {
+                            toast("Resultats de la recherche", "info");
+                            return redirect()->route('associations.index');
+                        }
                     }
                 }
             }

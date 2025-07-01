@@ -107,7 +107,10 @@
                 <td>
                     @if (!is_null($don->user))
                     <a href="{{ route('users.show', $don->user->reference) }}" style="color: inherit !important;">
-                        <span style="display: inline-block;"><img style="height: 30px; width:30px; margin-right:2px;" src="{{Vite::asset('resources/assets/img/avatars/default.png')}}" alt="Avatar" class="rounded-circle" />{{$don->user->name}} </span>
+                        <span style="display: inline-block;">
+                            <img style="height: 30px; width:30px; margin-right:2px;" src="{{Vite::asset('resources/assets/img/avatars/default.png')}}" alt="Avatar" class="rounded-circle" />
+                            {{$don->user->name}} 
+                        </span>
                         @if (!is_null($don->user->country))
                             @if (!is_null($don->user->country->shortern))
                         <img title="Côte d'ivoire" style="height: 15px; width:15px;" alt="ci" src="{{ Vite::asset('resources/assets/img/countries/'.$don->user->country->shortern.'_flag.png') }}">

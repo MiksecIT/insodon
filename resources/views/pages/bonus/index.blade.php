@@ -24,7 +24,14 @@
                                 <h4 class="fw-bold py-3">Bonus</h4>
                                 <p class="text-muted">
                                     <span class="text-muted" style="font-size: 13px;">
-                                        Liste des bonus générés
+                                        Liste des bonus générés &bullet; 
+                                        Réclamations 
+                                        @if (today()->dayOfWeek == \Carbon\Carbon::FRIDAY)
+                                        <span class="badge bg-label-success"><i class="tf-icons bx bx-rocket"></i> disponible</span>
+                                        @else
+                                        <span class="badge bg-label-danger"><i class="tf-icons bx bx-rocket"></i> indisponible</span> &bullet; 
+                                        Veuillez attendre le <strong class="text-primary">Vendredi</strong> prochain.
+                                        @endif
                                     </span>
                                 </p>
                             </div>

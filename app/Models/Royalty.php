@@ -34,7 +34,17 @@ class Royalty extends Model
     }
 
     /**
-     * Parent withdraw
+     * Don which produced this royalty
+     *
+     * @return void
+     */
+    public function don ()
+    {
+        return $this->belongsTo(Don::class, "don_id");
+    }
+
+    /**
+     * Reward which produced this royalty
      *
      * @return void
      */

@@ -166,7 +166,7 @@
                         <span class="tf-icons bx bx-detail"></span>
                     </a>
 
-                    @if (auth()->user()->isTopManager())
+                    @if (auth()->user()->isPartOfAdmin())
                         @if ($reward->isReady() && $reward->isFusioned() == false)                            
                     <a title="Créer une association" href="{{ route('associations.createFromReward', $reward->reference) }}" type="button" class="btn rounded-pill btn-icon btn-primary">
                         <span class="tf-icons bx bx-link"></span>

@@ -224,14 +224,16 @@
                                 <div class="row">
                                     <div class="col">
                                         @if (auth()->user()->id == $fusion->sender()->id)
+                                            <h5>Destinataire &rarr; <strong class="text-primary">{{ $fusion->receiver()->name }}</strong></h5>
                                             @include('layouts.components.wallet-component', ["user" => $fusion->receiver()])
                                         @elseif(auth()->user()->id == $fusion->receiver()->id)
+                                            <h5>Expéditeur &rarr; <strong class="text-primary">{{ $fusion->sender()->name }}</strong></h5>
                                             @include('layouts.components.wallet-component', ["user" => $fusion->sender()])
                                         @elseif (auth()->user()->isPartOfAdmin())
-                                            <h5>Expéditeur</h5>
+                                            <h5>Expéditeur &rarr; <strong class="text-primary">{{ $fusion->sender()->name }}</strong></h5>
                                             @include('layouts.components.wallet-component', ["user" => $fusion->sender()])
                                             <br>
-                                            <h5>Destinataire</h5>
+                                            <h5>Destinataire &rarr; <strong class="text-primary">{{ $fusion->receiver()->name }}</strong></h5>
                                             @include('layouts.components.wallet-component', ["user" => $fusion->receiver()])
                                         @endif                                        
                                     </div>
