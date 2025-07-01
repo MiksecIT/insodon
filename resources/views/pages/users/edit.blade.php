@@ -85,8 +85,8 @@
                                                         </div>
                                                     </div>
                                                     
-                                                    <div class="mb-3 col-md-{{ auth()->user()->isTopManager() ? '4' : '6' }}">
-                                                        <label class="form-label" for="phoneNumber">Numéro de téléphone</label>
+                                                    <div class="mb-3 col-md-4">
+                                                        <label class="form-label" for="phoneNumber">Numéro de téléphone no.1</label>
                                                         <div class="input-group input-group-merge">
                                                             <input {{ can_edit($user->phone_number) ? '' : 'disabled' }}
                                                                 type="text"
@@ -97,9 +97,43 @@
                                                                 value="{{ $user->phone_number }}"
                                                             />
                                                         </div>
+                                                        <div class="list-group mt-2">
+                                                            <label class="list-group-item">
+                                                                <input {{ can_edit($user->phone_number_is_wa) ? '' : 'disabled' }} @if($user->phone_number_is_wa) checked="" @endif class="form-check-input me-1" name="phone_number_is_wa" type="checkbox" value="wa">
+                                                                C'est un compte <span class="badge rounded-pill bg-success"><i class="tf-icons bx bxl-whatsapp"></i> whatsapp</span>
+                                                            </label>
+                                                            <label class="list-group-item">
+                                                                <input {{ can_edit($user->phone_number_is_tg) ? '' : 'disabled' }} @if($user->phone_number_is_tg) checked="" @endif class="form-check-input me-1" name="phone_number_is_tg" type="checkbox" value="tg">
+                                                                C'est un compte <span class="badge rounded-pill bg-info"><i class="tf-icons bx bxl-telegram"></i> telegram</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-3 col-md-4">
+                                                        <label class="form-label" for="phoneNumber2">Numéro de téléphone no.2</label>
+                                                        <div class="input-group input-group-merge">
+                                                            <input {{ can_edit($user->phone_number2) ? '' : 'disabled' }}
+                                                                type="text"
+                                                                id="phoneNumber2"
+                                                                name="phoneNumber2"
+                                                                class="form-control"
+                                                                placeholder="202 555 0111"
+                                                                value="{{ $user->phone_number2 }}"
+                                                            />                                                                        
+                                                        </div>
+                                                        <div class="list-group mt-2">
+                                                            <label class="list-group-item">
+                                                                <input {{ can_edit($user->phone_number2_is_wa) ? '' : 'disabled' }} @if($user->phone_number2_is_wa) checked="" @endif class="form-check-input me-1" name="phone_number2_is_wa" type="checkbox" value="wa">
+                                                                C'est un compte <span class="badge rounded-pill bg-success"><i class="tf-icons bx bxl-whatsapp"></i> whatsapp</span>
+                                                            </label>
+                                                            <label class="list-group-item">
+                                                                <input {{ can_edit($user->phone_number2_is_tg) ? '' : 'disabled' }} @if($user->phone_number2_is_tg) checked="" @endif class="form-check-input me-1" name="phone_number2_is_tg" type="checkbox" value="tg">
+                                                                C'est un compte <span class="badge rounded-pill bg-info"><i class="tf-icons bx bxl-telegram"></i> telegram</span>
+                                                            </label>
+                                                        </div>
                                                     </div>
                                                     
-                                                    <div class="mb-3 col-md-{{ auth()->user()->isTopManager() ? '4' : '6' }}">
+                                                    <div class="mb-3 col-md-4">
                                                         <label class="form-label" for="country">Pays 
                                                             @if (!is_null($user->country))                                
                                                             &bullet; <img src="{{ Vite::asset('resources/assets/img/countries/'.$user->country->shortern.'_flag.png') }}" style="height: 15px; width:15px; vertical-align:middle; margin-right:3px;" alt="{{ $user->country->shortern }}_flag">{{ $user->country->label }}
@@ -119,43 +153,42 @@
                                                             @empty
                                                             @endforelse
                                                         </select>
-                                                    </div>
+                                                        @if (auth()->user()->isTopManager())
+                                                        <div class="mt-3">
+                                                            <label for="role" class="form-label">Rôle @if(!is_null($user->role)) &bullet; {{ $user->role->label }} @endif</label>
+                                                            <select required name="role" class="form-select" id="role" aria-label="Role">
+                                                                <option selected="">--Vide</option>
+                                                                @forelse ($roles as $role)
 
-                                                    @if (auth()->user()->isTopManager())
-                                                    <div class="mb-3 col-md-4">
-                                                        <label for="role" class="form-label">Rôle @if(!is_null($user->role)) &bullet; {{ $user->role->label }} @endif</label>
-                                                        <select required name="role" class="form-select" id="role" aria-label="Role">
-                                                            <option selected="">--Vide</option>
-                                                            @forelse ($roles as $role)
+                                                                    @php
+                                                                        $show = false;
+                                                                    @endphp
 
-                                                                @php
-                                                                    $show = false;
-                                                                @endphp
-
-                                                                @if ($role->reference == "root")
-                                                                    @if (auth()->user()->isRoot())
+                                                                    @if ($role->reference == "root")
+                                                                        @if (auth()->user()->isRoot())
+                                                                            @php
+                                                                                $show = true;
+                                                                            @endphp
+                                                                        @else
+                                                                            @php
+                                                                                $show = false;
+                                                                            @endphp
+                                                                        @endif
+                                                                    @else
                                                                         @php
                                                                             $show = true;
                                                                         @endphp
-                                                                    @else
-                                                                        @php
-                                                                            $show = false;
-                                                                        @endphp
                                                                     @endif
-                                                                @else
-                                                                    @php
-                                                                        $show = true;
-                                                                    @endphp
-                                                                @endif
 
-                                                                @if ($show)
-                                                            <option @if ($user->role_id == $role->id) selected="" @endif value="{{ $role->id }}">{{ $role->label }}</option>
-                                                                @endif
-                                                            @empty
-                                                            @endforelse
-                                                        </select>
+                                                                    @if ($show)
+                                                                <option @if ($user->role_id == $role->id) selected="" @endif value="{{ $role->id }}">{{ $role->label }}</option>
+                                                                    @endif
+                                                                @empty
+                                                                @endforelse
+                                                            </select>
+                                                        </div>
+                                                        @endif
                                                     </div>
-                                                    @endif
 
                                                 </div>
                                                 <div class="row">

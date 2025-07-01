@@ -23,7 +23,7 @@
                         <span class="badge rounded-pill bg-label-@if($bon->don->position == 'first')danger @elseif($bon->don->position == 'second')warning @elseif($bon->don->position == 'third')success @endif">{{ ucfirst($bon->don->position) }}</span>
                         <br><br>
                         <span class="badge bg-label-secondary">Don</span> <a href="{{ auth()->user()->hasDon($bon->don) || auth()->user()->isPartOfAdmin() ? route('gifts.show', $bon->don->reference) : "#!" }}"><strong>{{ "#".$bon->don->reference }}</strong></a> <br><br>
-                        <span class="tf-icons bx bx-box"></span> <span class="text-muted">&larr;</span> <strong>@convert($bon->don->amount)</strong> <span class="text-muted">@if($bon->don->is_usd) &dollar; @else XOF @endif</span> 
+                        <span class="tf-icons bx bx-gift"></span> <span class="text-muted">&rarr;</span> <strong>@convert($bon->don->amount)</strong> <span class="text-muted">@if($bon->don->is_usd) &dollar; @else XOF @endif</span> 
                     
                         @if (auth()->user()->hasDon($bon->don) || auth()->user()->isPartOfAdmin())
                             @if (!is_null($bon->don->remaining_amount) && $bon->don->remaining_amount > 0) &bullet; <strong>@convert($bon->don->remaining_amount)</strong> <span class="pb-1 mb-4 text-muted">restant</span> @endif

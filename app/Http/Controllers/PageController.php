@@ -63,7 +63,7 @@ class PageController extends Controller
                     $existingPhone = User::where('phone_number', $request->phoneNumber)->first();
                     if (!is_null($existingPhone)) {
                         if ($existingPhone->id != auth()->user()->id) {
-                            alert()->error("Erreur", "Le numéro de téléphone est déjà utilisé.")->persistent();
+                            alert()->error("Erreur", "Le numéro de téléphone no.2 est déjà utilisé.")->persistent();
                             return redirect()->back();
                         }
                     } else {
@@ -75,6 +75,108 @@ class PageController extends Controller
                         }
 
                     }
+                }
+            }
+        }
+        # PhoneNumber is whatsapp
+        if ($request->has("phone_number_is_wa")) {
+            if (can_edit(auth()->user()->phone_number_is_wa)) {
+                if (auth()->user()->phone_number_is_wa != 1) {
+                    auth()->user()->phone_number_is_wa =1;
+                    auth()->user()->save();
+
+                    $edited +=1;
+                }
+            }
+        } else {
+            if (can_edit(auth()->user()->phone_number_is_wa)) {
+                if (auth()->user()->phone_number_is_wa != 0) {
+                    auth()->user()->phone_number_is_wa =0;
+                    auth()->user()->save();
+
+                    $edited +=1;
+                }
+            }
+        }
+        # PhoneNumber is telegram
+        if ($request->has("phone_number_is_tg")) {
+            if (can_edit(auth()->user()->phone_number_is_tg)) {
+                if (auth()->user()->phone_number_is_tg != 1) {
+                    auth()->user()->phone_number_is_tg =1;
+                    auth()->user()->save();
+
+                    $edited +=1;
+                }
+            }
+        } else {
+            if (can_edit(auth()->user()->phone_number_is_tg)) {
+                if (auth()->user()->phone_number_is_tg != 0) {
+                    auth()->user()->phone_number_is_tg =0;
+                    auth()->user()->save();
+
+                    $edited +=1;
+                }
+            }
+        }
+        # PhoneNumber 2
+        if ($request->has("phoneNumber2")) {
+            if (can_edit(auth()->user()->phone_number2)) {
+                if (!is_null($request->phoneNumber2)) {
+                    $existingPhone = User::where('phone_number2', $request->phoneNumber2)->first();
+                    if (!is_null($existingPhone)) {
+                        if ($existingPhone->id != auth()->user()->id) {
+                            alert()->error("Erreur", "Le numéro de téléphone no.2 est déjà utilisé.")->persistent();
+                            return redirect()->back();
+                        }
+                    } else {
+                        if (auth()->user()->phone_number2 != $request->phoneNumber2) {
+                            auth()->user()->phone_number2 = $request->phoneNumber2;
+                            auth()->user()->save();
+
+                            $edited +=1;
+                        }
+
+                    }
+                }
+            }
+        }
+        # PhoneNumber 2 is whatsapp
+        if ($request->has("phone_number2_is_wa")) {
+            if (can_edit(auth()->user()->phone_number2_is_wa)) {
+                if (auth()->user()->phone_number2_is_wa != 1) {
+                    auth()->user()->phone_number2_is_wa =1;
+                    auth()->user()->save();
+
+                    $edited +=1;
+                }
+            }
+        } else {
+            if (can_edit(auth()->user()->phone_number2_is_wa)) {
+                if (auth()->user()->phone_number2_is_wa != 0) {
+                    auth()->user()->phone_number2_is_wa =0;
+                    auth()->user()->save();
+
+                    $edited +=1;
+                }
+            }
+        }
+        # PhoneNumber 2 is telegram
+        if ($request->has("phone_number2_is_tg")) {
+            if (can_edit(auth()->user()->phone_number2_is_tg)) {
+                if (auth()->user()->phone_number2_is_tg != 1) {
+                    auth()->user()->phone_number2_is_tg =1;
+                    auth()->user()->save();
+
+                    $edited +=1;
+                }
+            }
+        } else {
+            if (can_edit(auth()->user()->phone_number2_is_tg)) {
+                if (auth()->user()->phone_number2_is_tg != 0) {
+                    auth()->user()->phone_number2_is_tg =0;
+                    auth()->user()->save();
+
+                    $edited +=1;
                 }
             }
         }

@@ -9,7 +9,7 @@ if (! function_exists('can_edit')) {
         if (auth()->user()->isPartOfAdmin()) {
             return true;
         } else {
-            if (is_null($toCheck))  {
+            if (is_null($toCheck) || $toCheck == false)  {
                 return true;
             } 
             else {

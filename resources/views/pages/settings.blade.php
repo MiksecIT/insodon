@@ -185,8 +185,8 @@
                                                                         placeholder="Adress mail"
                                                                     />
                                                                 </div>
-                                                                <div class="mb-3 col-md-6">
-                                                                    <label class="form-label" for="phoneNumber">Numéro de téléphone</label>
+                                                                <div class="mb-3 col-md-4">
+                                                                    <label class="form-label" for="phoneNumber">Numéro de téléphone no.1</label>
                                                                     <div class="input-group input-group-merge">
                                                                         <input {{ can_edit(auth()->user()->phone_number) ? '' : 'disabled' }}
                                                                             type="text"
@@ -197,8 +197,41 @@
                                                                             value="{{ auth()->user()->phone_number }}"
                                                                         />
                                                                     </div>
+                                                                    <div class="list-group mt-2">
+                                                                        <label class="list-group-item">
+                                                                            <input {{ can_edit(auth()->user()->phone_number_is_wa) ? '' : 'disabled' }} @if(auth()->user()->phone_number_is_wa) checked="" @endif class="form-check-input me-1" name="phone_number_is_wa" type="checkbox" value="wa">
+                                                                            C'est un compte <span class="badge rounded-pill bg-success"><i class="tf-icons bx bxl-whatsapp"></i> whatsapp</span>
+                                                                        </label>
+                                                                        <label class="list-group-item">
+                                                                            <input {{ can_edit(auth()->user()->phone_number_is_tg) ? '' : 'disabled' }} @if(auth()->user()->phone_number_is_tg) checked="" @endif class="form-check-input me-1" name="phone_number_is_tg" type="checkbox" value="tg">
+                                                                            C'est un compte <span class="badge rounded-pill bg-info"><i class="tf-icons bx bxl-telegram"></i> telegram</span>
+                                                                        </label>
+                                                                    </div>
                                                                 </div>
-                                                                <div class="mb-3 col-md-6">
+                                                                <div class="mb-3 col-md-4">
+                                                                    <label class="form-label" for="phoneNumber2">Numéro de téléphone no.2</label>
+                                                                    <div class="input-group input-group-merge">
+                                                                        <input {{ can_edit(auth()->user()->phone_number2) ? '' : 'disabled' }}
+                                                                            type="text"
+                                                                            id="phoneNumber2"
+                                                                            name="phoneNumber2"
+                                                                            class="form-control"
+                                                                            placeholder="202 555 0111"
+                                                                            value="{{ auth()->user()->phone_number2 }}"
+                                                                        />                                                                        
+                                                                    </div>
+                                                                    <div class="list-group mt-2">
+                                                                        <label class="list-group-item">
+                                                                            <input {{ can_edit(auth()->user()->phone_number2_is_wa) ? '' : 'disabled' }} @if(auth()->user()->phone_number2_is_wa) checked="" @endif class="form-check-input me-1" name="phone_number2_is_wa" type="checkbox" value="wa">
+                                                                            C'est un compte <span class="badge rounded-pill bg-success"><i class="tf-icons bx bxl-whatsapp"></i> whatsapp</span>
+                                                                        </label>
+                                                                        <label class="list-group-item">
+                                                                            <input {{ can_edit(auth()->user()->phone_number2_is_tg) ? '' : 'disabled' }} @if(auth()->user()->phone_number2_is_tg) checked="" @endif class="form-check-input me-1" name="phone_number2_is_tg" type="checkbox" value="tg">
+                                                                            C'est un compte <span class="badge rounded-pill bg-info"><i class="tf-icons bx bxl-telegram"></i> telegram</span>
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mb-3 col-md-4">
                                                                     <label class="form-label" for="country">Pays 
                                                                         @if (!is_null(auth()->user()->country))                                
                                                                         &bullet; <img src="{{ Vite::asset('resources/assets/img/countries/'.auth()->user()->country->shortern.'_flag.png') }}" style="height: 15px; width:15px; vertical-align:middle; margin-right:3px;" alt="{{ auth()->user()->country->shortern }}_flag">{{ auth()->user()->country->label }}

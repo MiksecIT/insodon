@@ -249,6 +249,7 @@ class UsersController extends Controller
                 $setting = $user->initSetting();
             }
 
+            # Country
             if (!is_null($request->country)) {
                 $country = \App\Models\Country::find($request->country);
                 if (is_null($country)) {
@@ -264,6 +265,7 @@ class UsersController extends Controller
                 }
             }
 
+            # Firstname & Lastname
             if (!is_null($request->firstname) && !is_null($request->lastname)) {
                 $existingLastFirst = User::where("firstname", $request->firstname)->where('lastname', $request->lastname)->first();
                 if (!is_null($existingLastFirst)) {
@@ -289,11 +291,12 @@ class UsersController extends Controller
                 }
             }
             
+            # PhoneNumber 1
             if (!is_null($request->phoneNumber)) {
                 $existingPhoneNumber = User::where("phone_number", $request->phoneNumber)->first();
                 if (!is_null($existingPhoneNumber)) {
                     if ($existingPhoneNumber->id != $user->id) {
-                        alert()->error("Erreur", "Le numéro de téléphone est déjà utilisé")->persistent();
+                        alert()->error("Erreur", "Le numéro de téléphone no.1 est déjà utilisé")->persistent();
                         return redirect()->back()->withInput();
                     } else {
                         if ($user->phone_number != $request->phoneNumber) {
@@ -304,6 +307,111 @@ class UsersController extends Controller
                         }
                     }
                 } 
+            }
+
+            # PhoneNumber is whatsapp
+            if ($request->has("phone_number_is_wa")) {
+                if (can_edit($user->phone_number_is_wa)) {
+                    if ($user->phone_number_is_wa != 1) {
+                        $user->phone_number_is_wa =1;
+                        $user->save();
+
+                        $edited +=1;
+                    }
+                }
+            } else {
+                if (can_edit($user->phone_number_is_wa)) {
+                    if ($user->phone_number_is_wa != 0) {
+                        $user->phone_number_is_wa =0;
+                        $user->save();
+
+                        $edited +=1;
+                    }
+                }
+            }
+            # PhoneNumber is telegram
+            if ($request->has("phone_number_is_tg")) {
+                if (can_edit($user->phone_number_is_tg)) {
+                    if ($user->phone_number_is_tg != 1) {
+                        $user->phone_number_is_tg =1;
+                        $user->save();
+
+                        $edited +=1;
+                    }
+                }
+            } else {
+                if (can_edit($user->phone_number_is_tg)) {
+                    if ($user->phone_number_is_tg != 0) {
+                        $user->phone_number_is_tg =0;
+                        $user->save();
+
+                        $edited +=1;
+                    }
+                }
+            }
+
+            # PhoneNumber 2
+            if ($request->has("phoneNumber2")) {
+                if (can_edit($user->phone_number2)) {
+                    if (!is_null($request->phoneNumber2)) {
+                        $existingPhone = User::where('phone_number2', $request->phoneNumber2)->first();
+                        if (!is_null($existingPhone)) {
+                            if ($existingPhone->id != $user->id) {
+                                alert()->error("Erreur", "Le numéro de téléphone no.2 est déjà utilisé.")->persistent();
+                                return redirect()->back();
+                            }
+                        } else {
+                            if ($user->phone_number2 != $request->phoneNumber2) {
+                                $user->phone_number2 = $request->phoneNumber2;
+                                $user->save();
+
+                                $edited +=1;
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            # PhoneNumber 2 is whatsapp
+            if ($request->has("phone_number2_is_wa")) {
+                if (can_edit($user->phone_number2_is_wa)) {
+                    if ($user->phone_number2_is_wa != 1) {
+                        $user->phone_number2_is_wa =1;
+                        $user->save();
+
+                        $edited +=1;
+                    }
+                }
+            } else {
+                if (can_edit($user->phone_number2_is_wa)) {
+                    if ($user->phone_number2_is_wa != 0) {
+                        $user->phone_number2_is_wa =0;
+                        $user->save();
+
+                        $edited +=1;
+                    }
+                }
+            }
+            # PhoneNumber 2 is telegram
+            if ($request->has("phone_number2_is_tg")) {
+                if (can_edit($user->phone_number2_is_tg)) {
+                    if ($user->phone_number2_is_tg != 1) {
+                        $user->phone_number2_is_tg =1;
+                        $user->save();
+
+                        $edited +=1;
+                    }
+                }
+            } else {
+                if (can_edit($user->phone_number2_is_tg)) {
+                    if ($user->phone_number2_is_tg != 0) {
+                        $user->phone_number2_is_tg =0;
+                        $user->save();
+
+                        $edited +=1;
+                    }
+                }
             }
 
             # Updating role
@@ -320,7 +428,6 @@ class UsersController extends Controller
             }
 
             # Updating wallets
-
             # Wallet 1
             if ($request->has("wallet_1")) {
                 if (can_edit($user->wallet_1)) {
