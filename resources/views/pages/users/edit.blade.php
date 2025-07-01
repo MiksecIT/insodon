@@ -62,7 +62,8 @@
                                                             
                                                             value="{{ $user->firstname }}"
                                                         />
-                                                    </div>                                           
+                                                    </div>  
+                                                                                             
                                                     <div class="mb-3 col-md-12">
                                                         <label class="form-label" for="email">Adresse mail</label>
                                                         <div class="input-group input-group-merge">
@@ -79,7 +80,7 @@
                                                         </div>
                                                     </div>
                                                     
-                                                    <div class="mb-3 col-md-6">
+                                                    <div class="mb-3 col-md-{{ auth()->user()->isTopManager() ? '4' : '6' }}">
                                                         <label class="form-label" for="phoneNumber">Numéro de téléphone</label>
                                                         <div class="input-group input-group-merge">
                                                             <input {{ can_edit($user->phone_number) ? '' : 'disabled' }}
@@ -92,8 +93,8 @@
                                                             />
                                                         </div>
                                                     </div>
-
-                                                    <div class="mb-3 col-md-6">
+                                                    
+                                                    <div class="mb-3 col-md-{{ auth()->user()->isTopManager() ? '4' : '6' }}">
                                                         <label class="form-label" for="country">Pays 
                                                             @if (!is_null($user->country))                                
                                                             &bullet; <img src="{{ Vite::asset('resources/assets/img/countries/'.$user->country->shortern.'_flag.png') }}" style="height: 15px; width:15px; vertical-align:middle; margin-right:3px;" alt="{{ $user->country->shortern }}_flag">{{ $user->country->label }}
@@ -114,6 +115,42 @@
                                                             @endforelse
                                                         </select>
                                                     </div>
+
+                                                    @if (auth()->user()->isTopManager())
+                                                    <div class="mb-3 col-md-4">
+                                                        <label for="role" class="form-label">Rôle @if(!is_null($user->role)) &bullet; {{ $user->role->label }} @endif</label>
+                                                        <select required name="role" class="form-select" id="role" aria-label="Role">
+                                                            <option selected="">--Vide</option>
+                                                            @forelse ($roles as $role)
+
+                                                                @php
+                                                                    $show = false;
+                                                                @endphp
+
+                                                                @if ($role->reference == "root")
+                                                                    @if (auth()->user()->isRoot())
+                                                                        @php
+                                                                            $show = true;
+                                                                        @endphp
+                                                                    @else
+                                                                        @php
+                                                                            $show = false;
+                                                                        @endphp
+                                                                    @endif
+                                                                @else
+                                                                    @php
+                                                                        $show = true;
+                                                                    @endphp
+                                                                @endif
+
+                                                                @if ($show)
+                                                            <option @if ($user->role_id == $role->id) selected="" @endif value="{{ $role->id }}">{{ $role->label }}</option>
+                                                                @endif
+                                                            @empty
+                                                            @endforelse
+                                                        </select>
+                                                    </div>
+                                                    @endif
 
                                                 </div>
                                                 <div class="row">

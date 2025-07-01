@@ -170,9 +170,32 @@ class FusionsController extends Controller
                     $fusion->don->status = "completed";
                     $fusion->don->save();
 
+                    # Generating royalty (bonus) for fusion don user's parent
+                    if (\App\Utils\Utils::appSettings()->enable_royalties) {
+                        if ($fusion->don->isFirst()) {
+                            # Make sure current has a parent
+                            if (!is_null($fusion->don->user->parent)) {
+                                $existingRoyalties = \App\Models\Royalty::where("don_id", $fusion->don->id)->where("user_id", $fusion->don->user->id)->get();
+                                if (count($existingRoyalties) == 0) {
+                                    $royalty = \App\Models\Royalty::create([
+                                        "reference" => \App\Utils\Utils::generateReference(\App\Models\Royalty::all(), \App\Utils\Utils::fakeToken(20), 1),
+                                        "don_id" => $fusion->don->id,
+                                        "reward_id" => null, 
+                                        "target" => $fusion->don->user->parent->id,
+                                        "user_id" => $fusion->don->user->id,
+                                        "is_usd" => $fusion->don->is_usd == 1 ? 1 : 0,
+                                        "value" => intval(round(\App\Utils\Utils::appSettings()->royalties_percent * $fusion->don->amount / 100, 0, PHP_ROUND_HALF_UP)),
+                                        "created_at" => now(),
+                                        "updated_at" => now(),
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+
                     # Creating Reward for don
-                    $existingReward = Reward::where("don_id", $fusion->don->id)->where("user_id", $fusion->don->user->id)->get();
-                    if (count($existingReward) == 0) {
+                    $existingRewards = Reward::where("don_id", $fusion->don->id)->where("user_id", $fusion->don->user->id)->get();
+                    if (count($existingRewards) == 0) {
                         $reward = Reward::create([
                             "reference" => \App\Utils\Utils::generateReference(Reward::all(), \App\Utils\Utils::fakeToken(20), 1),
                             "don_id" => $fusion->don->id,
@@ -183,7 +206,7 @@ class FusionsController extends Controller
                             "created_at" => now(),
                             "updated_at" => now(),
                         ]);
-                        # Amount
+                        # Amount according to given currency
                         if ($reward->is_usd) {
                             if ($fusion->don->isFirst()) {
                                 $reward->amount = $fusion->don->pack->amount_usd;
@@ -213,22 +236,6 @@ class FusionsController extends Controller
 
                     # Creating royalties for reward user's parent
                     if (\App\Utils\Utils::appSettings()->enable_royalties) {
-                        if ($fusion->reward->source == "don" && $fusion->reward->isInitiale() == false) {
-                            # Make sure current has a parent
-                            if (!is_null($fusion->reward->user->parent)) {
-                                $royalty = \App\Models\Royalty::create([
-                                    "reference" => \App\Utils\Utils::generateReference(\App\Models\Royalty::all(), \App\Utils\Utils::fakeToken(20), 1),
-                                    "reward_id" => $fusion->reward->id, 
-                                    "target" => $fusion->reward->user->parent->id,
-                                    "user_id" => $fusion->reward->user->id,
-                                    "is_usd" => $fusion->reward->is_usd == 1 ? 1 : 0,
-                                    "value" => intval(round(\App\Utils\Utils::appSettings()->royalties_percent * $fusion->reward->amount / 100, 0, PHP_ROUND_HALF_UP)),
-                                    "created_at" => now(),
-                                    "updated_at" => now(),
-                                ]);
-                            }
-                        }
-
                         # Updating related royalties that are valid and waiting payment
                         if ($fusion->reward->source == "bonus" && $fusion->reward->isInitiale() == false) {
                             $fusion->reward->completeRoyalties();
@@ -357,7 +364,7 @@ class FusionsController extends Controller
             return redirect()->back();
         }
 
-        if (auth()->user()->isTopManager()) {
+        if (auth()->user()->isPartOfAdmin()) {
             $don = Don::where("reference", $reference)->first();
             abort_unless (!is_null($don), 404);
 
@@ -464,7 +471,7 @@ class FusionsController extends Controller
             return redirect()->back();
         }
 
-        if (auth()->user()->isTopManager()) {
+        if (auth()->user()->isPartOfAdmin()) {
             $reward = Reward::where("reference", $reference)->first();
             abort_unless (!is_null($reward), 404);
 
@@ -569,7 +576,7 @@ class FusionsController extends Controller
             return redirect()->back();
         }
 
-        abort_unless(auth()->user()->isTopManager(), 403);
+        abort_unless(auth()->user()->isPartOfAdmin(), 403);
 
         if ($request->has("d") && $request->has("r")) {
 
@@ -1046,12 +1053,20 @@ class FusionsController extends Controller
             return redirect()->back();
         }
 
-        if (auth()->user()->isTopManager()) {
+        if (auth()->user()->isPartOfAdmin()) {
             $fusion = auth()->user()->isRoot() ? Fusion::withTrashed()->find($id) : Fusion::find($id);
             abort_unless(!is_null($fusion), 404);
             if ($fusion->isSent() == false && $fusion->isReceived() == false) {
                 if (is_null($fusion->deleted_at)) {
                     #TODO: Update related don and reward before deleting...
+                    if (!is_null($fusion->don)) {
+                        $fusion->don->remaining_amount = $fusion->don->remaining_amount + $fusion->amount;
+                        $fusion->don->save();
+                    }
+                    if (!is_null($fusion->reward)) {
+                        $fusion->reward->remaining_amount = $fusion->reward->remaining_amount + $fusion->amount;
+                        $fusion->reward->save(); 
+                    }
                     $fusion->delete();
                     toast("Association supprimée avec succès", "success");
                 } else {

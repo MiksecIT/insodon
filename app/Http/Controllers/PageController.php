@@ -651,15 +651,7 @@ class PageController extends Controller
                     $record = \App\Models\Fusion::where("reference", $request->s)->first();
                     if (!is_null($record)) {
                         toast("Resultats de la recherche", "info");
-                        return redirect()->route('associations.show', $record->reference);
-                    }
-                }
-
-                if ($request->c == "gifts") {
-                    $record = \App\Models\Royalty::where("reference", $request->s)->first();
-                    if (!is_null($record)) {
-                        toast("Resultats de la recherche", "info");
-                        return redirect()->route('bonus.show', $record->reference);
+                        return redirect()->route('associations.index');
                     }
                 }
             }

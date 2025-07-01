@@ -124,6 +124,9 @@ class UsersController extends Controller
 
         $user = User::where('reference', $reference)->first();
         abort_unless(!is_null($user), 404);
+
+        $user->initSetting();
+
         if (auth()->user()->hasAffiliate($user) || auth()->user()->id == $user->id || auth()->user()->isPartOfAdmin()) {
             
             if ($user->isRoot()) {
@@ -196,6 +199,8 @@ class UsersController extends Controller
 
         $user = User::where('reference', $reference)->first();
         abort_unless(!is_null($user), 404);
+
+        $user->initSetting();
         
         if (auth()->user()->isPartOfAdmin()) {
             
@@ -299,6 +304,19 @@ class UsersController extends Controller
                         }
                     }
                 } 
+            }
+
+            # Updating role
+            if ($request->has('role') && auth()->user()->isTopManager()) {
+                $role = \App\Models\Role::find($request->role);
+                if (!is_null($role)) {
+                    if ($user->role_id != $role->id) {
+                        $user->role_id = $role->id;
+                        $user->save();
+
+                        $edited +=1;
+                    }
+                }
             }
 
             # Updating wallets

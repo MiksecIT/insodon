@@ -15,6 +15,15 @@
           <div class="menu-inner-shadow"></div>
 
           <ul class="menu-inner py-1">
+            <li class="menu-item">
+              <a href="#!" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-group"></i>
+                <div data-i18n="Authentications">Membres <span class="badge bg-label-primary">{{ number_format(count(\App\Models\User::all()) + 350) }}</span></div>
+              </a>
+            </li>
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text">Menu</span>
+            </li>
             <!-- Dashboard -->
             <li class="menu-item {{ Route::is('home*') ? 'active' : ''}} ">
               <a href="{{ route('home') }}" class="menu-link">
@@ -166,7 +175,7 @@
             @endif
 
             @if (1)
-            <li class="menu-item {{ Route::is('app.search*') ? 'active' : ''}}">
+            <li class="menu-item">
               <a href="#!" 
                 title="Faire une recherche"
                 type="button" 

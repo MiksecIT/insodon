@@ -14,7 +14,11 @@
             @foreach ($users as $user)
 
             @php
+            
                 $show = false;
+
+                $user->initSetting();
+
             @endphp
 
             @if ($user->reference == "root")
