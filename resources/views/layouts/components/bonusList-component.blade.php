@@ -51,9 +51,6 @@
                         @if (auth()->user()->hasReward($bon->withdrawReward) || auth()->user()->isPartOfAdmin())
                             @if (!is_null($bon->withdrawReward->remaining_amount) && $bon->withdrawReward->remaining_amount > 0) &bullet; <strong>@convert($bon->withdrawReward->remaining_amount)</strong> <span class="pb-1 mb-4 text-muted">restant</span> @endif
                         @endif
-
-                    @else
-                        <span class="badge bg-label-secondary">introuvable</span>
                     @endif
                 
                 </td>
