@@ -19,7 +19,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/jpg" href="{{ Vite::asset('resources/assets/img/favicon/logo.jpg') }}" />
+    <link rel="icon" type="image/x-icon" href="{{ Vite::asset('resources/assets/img/favicon/logo.ico') }}" />
+    
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
